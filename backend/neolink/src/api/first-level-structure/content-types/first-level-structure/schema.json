@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "first_level_structures",
+  "info": {
+    "singularName": "first-level-structure",
+    "pluralName": "first-level-structures",
+    "displayName": "first_level_structure"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "university": {
+      "type": "integer"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "second_level_structures",
+  "info": {
+    "singularName": "second-level-structure",
+    "pluralName": "second-level-structures",
+    "displayName": "second_level_structure"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "first_level_structure": {
+      "type": "integer"
+    }
+  }
+}

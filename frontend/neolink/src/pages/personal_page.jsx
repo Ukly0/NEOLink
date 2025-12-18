@@ -388,6 +388,35 @@ function PersonalPage() {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                     gap: '1rem'
                 }}>
+
+                    <button 
+                        onClick={() => navigate('/create-item', { state: { token } })}
+                        style={{
+                            padding: '1.25rem',
+                            backgroundColor: 'white',
+                            border: '2px solid #e9ecef',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            textAlign: 'left',
+                            fontWeight: '600',
+                            fontSize: '1rem',
+                            color: '#213547',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.borderColor = '#7c6fd6';
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.borderColor = '#e9ecef';
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                        }}
+                    >
+                        ➕ Create New Item
+                    </button>
                     <button style={{
                         padding: '1.25rem',
                         backgroundColor: 'white',

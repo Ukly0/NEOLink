@@ -64,3 +64,152 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* FormStyles.css - Import this in any component with forms */
+
+input,
+textarea,
+select {
+  background-color: white !important;
+  color: #213547 !important;
+  border: 2px solid #dee2e6 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6c757d !important;
+  opacity: 0.7;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #7c6fd6 !important;
+  outline: none;
+}
+
+/* Fix for date/time inputs */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+  background-color: white !important;
+  color: #213547 !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Fix for checkboxes - IMPORTANT */
+input[type="checkbox"] {
+  background-color: white !important;
+  border: 2px solid #dee2e6 !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  border-radius: 4px !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #7c6fd6 !important;
+  border-color: #7c6fd6 !important;
+}
+
+input[type="checkbox"]:checked::before {
+  content: '✓' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+}
+
+input[type="checkbox"]:hover {
+  border-color: #7c6fd6 !important;
+}
+
+input[type="checkbox"]:focus {
+  outline: 2px solid #7c6fd6 !important;
+  outline-offset: 2px !important;
+}
+
+/* Fix for radio buttons */
+input[type="radio"] {
+  background-color: white !important;
+  border: 2px solid #dee2e6 !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  border-radius: 50% !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+input[type="radio"]:checked {
+  border-color: #7c6fd6 !important;
+}
+
+input[type="radio"]:checked::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background-color: #7c6fd6 !important;
+}
+
+input[type="radio"]:hover {
+  border-color: #7c6fd6 !important;
+}
+
+/* Fix for select dropdowns */
+select {
+  background-color: white !important;
+  color: #213547 !important;
+  cursor: pointer;
+}
+
+select option {
+  background-color: white !important;
+  color: #213547 !important;
+}
+
+/* Fix for disabled inputs */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  background-color: #f8f9fa !important;
+  border-color: #dee2e6 !important;
+  cursor: not-allowed;
+  opacity: 0.5;
+}

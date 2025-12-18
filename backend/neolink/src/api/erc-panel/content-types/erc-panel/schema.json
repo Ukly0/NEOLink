@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "erc_panels",
+  "info": {
+    "singularName": "erc-panel",
+    "pluralName": "erc-panels",
+    "displayName": "erc_panels"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "text"
+    }
+  }
+}

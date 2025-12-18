@@ -16,6 +16,21 @@
     },
     "email": {
       "type": "email"
+    },
+    "orh_id": {
+      "type": "integer"
+    },
+    "virtual_cafe_id": {
+      "type": "integer"
+    },
+    "linkedin_link": {
+      "type": "string"
+    },
+    "personal_homepage": {
+      "type": "string"
+    },
+    "research_lab_link": {
+      "type": "string"
     }
   }
 }

@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "items",
+  "info": {
+    "singularName": "item",
+    "pluralName": "items",
+    "displayName": "items"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "item_status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "running",
+        "expired"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "category_id": {
+      "type": "integer"
+    },
+    "expiration": {
+      "type": "date"
+    },
+    "isced_code": {
+      "type": "string"
+    },
+    "erc_panel": {
+      "type": "integer"
+    },
+    "erc_keyword": {
+      "type": "integer"
+    },
+    "start_date": {
+      "type": "date"
+    },
+    "learning_outcomes": {
+      "type": "text"
+    },
+    "multimedial_material_provided": {
+      "type": "text"
+    },
+    "end_date": {
+      "type": "date"
+    },
+    "languages": {
+      "type": "string"
+    },
+    "speakers": {
+      "type": "text"
+    },
+    "pedagogical_objectives": {
+      "type": "text"
+    },
+    "level_of_study": {
+      "type": "text"
+    },
+    "university": {
+      "type": "integer"
+    },
+    "first_level_structure": {
+      "type": "integer"
+    },
+    "second_level_structure": {
+      "type": "integer"
+    }
+  }
+}

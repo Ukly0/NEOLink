@@ -430,6 +430,63 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiErcKeywordErcKeyword extends Struct.CollectionTypeSchema {
+  collectionName: 'erc_keywords';
+  info: {
+    displayName: 'erc_keywords';
+    pluralName: 'erc-keywords';
+    singularName: 'erc-keyword';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    erc_panel: Schema.Attribute.Integer;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::erc-keyword.erc-keyword'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiErcPanelErcPanel extends Struct.CollectionTypeSchema {
+  collectionName: 'erc_panels';
+  info: {
+    displayName: 'erc_panels';
+    pluralName: 'erc-panels';
+    singularName: 'erc-panel';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::erc-panel.erc-panel'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiFirstLevelStructureFirstLevelStructure
   extends Struct.CollectionTypeSchema {
   collectionName: 'first_level_structures';
@@ -453,6 +510,111 @@ export interface ApiFirstLevelStructureFirstLevelStructure
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    university: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiInterestInterest extends Struct.CollectionTypeSchema {
+  collectionName: 'interests';
+  info: {
+    displayName: 'interests';
+    pluralName: 'interests';
+    singularName: 'interest';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    interest_status: Schema.Attribute.Enumeration<
+      ['interested', 'not_interested']
+    >;
+    item_id: Schema.Attribute.Integer;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::interest.interest'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    seller_id: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiItemCategoryItemCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'item_categories';
+  info: {
+    displayName: 'item_categories';
+    pluralName: 'item-categories';
+    singularName: 'item-category';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::item-category.item-category'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiItemItem extends Struct.CollectionTypeSchema {
+  collectionName: 'items';
+  info: {
+    displayName: 'items';
+    pluralName: 'items';
+    singularName: 'item';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    category_id: Schema.Attribute.Integer;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    end_date: Schema.Attribute.Date;
+    erc_keyword: Schema.Attribute.Integer;
+    erc_panel: Schema.Attribute.Integer;
+    expiration: Schema.Attribute.Date;
+    first_level_structure: Schema.Attribute.Integer;
+    isced_code: Schema.Attribute.String;
+    item_status: Schema.Attribute.Enumeration<['active', 'running', 'expired']>;
+    languages: Schema.Attribute.String;
+    learning_outcomes: Schema.Attribute.Text;
+    level_of_study: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::item.item'> &
+      Schema.Attribute.Private;
+    multimedial_material_provided: Schema.Attribute.Text;
+    name: Schema.Attribute.String;
+    pedagogical_objectives: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    second_level_structure: Schema.Attribute.Integer;
+    speakers: Schema.Attribute.Text;
+    start_date: Schema.Attribute.Date;
     university: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -506,16 +668,21 @@ export interface ApiSellerSeller extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     email: Schema.Attribute.Email;
     full_name: Schema.Attribute.String;
+    linkedin_link: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::seller.seller'
     > &
       Schema.Attribute.Private;
+    orh_id: Schema.Attribute.Integer;
+    personal_homepage: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    research_lab_link: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    virtual_cafe_id: Schema.Attribute.Integer;
   };
 }
 
@@ -1057,7 +1224,12 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::erc-keyword.erc-keyword': ApiErcKeywordErcKeyword;
+      'api::erc-panel.erc-panel': ApiErcPanelErcPanel;
       'api::first-level-structure.first-level-structure': ApiFirstLevelStructureFirstLevelStructure;
+      'api::interest.interest': ApiInterestInterest;
+      'api::item-category.item-category': ApiItemCategoryItemCategory;
+      'api::item.item': ApiItemItem;
       'api::second-level-structure.second-level-structure': ApiSecondLevelStructureSecondLevelStructure;
       'api::seller.seller': ApiSellerSeller;
       'api::university.university': ApiUniversityUniversity;

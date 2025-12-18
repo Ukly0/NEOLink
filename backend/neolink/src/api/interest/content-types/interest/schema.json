@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "interests",
+  "info": {
+    "singularName": "interest",
+    "pluralName": "interests",
+    "displayName": "interests"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "seller_id": {
+      "type": "integer"
+    },
+    "item_id": {
+      "type": "integer"
+    },
+    "interest_status": {
+      "type": "enumeration",
+      "enum": [
+        "interested",
+        "not_interested"
+      ]
+    }
+  }
+}

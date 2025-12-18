@@ -591,6 +591,7 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
   };
   attributes: {
     category_id: Schema.Attribute.Integer;
+    cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -663,10 +664,13 @@ export interface ApiSellerSeller extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    avatar: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     email: Schema.Attribute.Email;
+    first_access: Schema.Attribute.Boolean;
+    first_level_structure: Schema.Attribute.String;
     full_name: Schema.Attribute.String;
     linkedin_link: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -675,10 +679,16 @@ export interface ApiSellerSeller extends Struct.CollectionTypeSchema {
       'api::seller.seller'
     > &
       Schema.Attribute.Private;
+    orcid_link: Schema.Attribute.String;
     orh_id: Schema.Attribute.Integer;
-    personal_homepage: Schema.Attribute.String;
+    OTP: Schema.Attribute.Text;
+    otp_active: Schema.Attribute.Boolean;
+    otp_generation_timestamp: Schema.Attribute.Text;
+    personal_page_link: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    research_lab_link: Schema.Attribute.String;
+    research_group_link: Schema.Attribute.String;
+    second_level_structure: Schema.Attribute.String;
+    university_name: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -26,10 +26,44 @@
     "linkedin_link": {
       "type": "string"
     },
-    "personal_homepage": {
+    "research_group_link": {
       "type": "string"
     },
-    "research_lab_link": {
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "OTP": {
+      "type": "text"
+    },
+    "otp_active": {
+      "type": "boolean"
+    },
+    "otp_generation_timestamp": {
+      "type": "text"
+    },
+    "first_access": {
+      "type": "boolean"
+    },
+    "personal_page_link": {
+      "type": "string"
+    },
+    "university_name": {
+      "type": "string"
+    },
+    "first_level_structure": {
+      "type": "string"
+    },
+    "second_level_structure": {
+      "type": "string"
+    },
+    "orcid_link": {
       "type": "string"
     }
   }

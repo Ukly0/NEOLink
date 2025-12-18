@@ -72,6 +72,16 @@
     },
     "second_level_structure": {
       "type": "integer"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }

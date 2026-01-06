@@ -249,7 +249,7 @@ function CreateItemForm({ token, initialData, onNext }) {
                     
                     if (formData.erc_keyword) {
                         const isValid = (response.data.data || response.data || [])
-                            .some(keyword => keyword.id === formData.erc_keyword);
+                            .some(keyword => keyword.documentId === formData.erc_keyword);
                         if (!isValid) {
                             setFormData(prev => ({
                                 ...prev,
@@ -706,7 +706,7 @@ function CreateItemForm({ token, initialData, onNext }) {
                                         {formData.erc_panel ? 'Select ERC Keyword' : 'Select panel first'}
                                     </option>
                                     {ercKeywords.map(keyword => (
-                                        <option key={keyword.id} value={keyword.id}>
+                                        <option key={keyword.documentId} value={keyword.documentId}>
                                             {keyword.attributes?.name || keyword.name}
                                         </option>
                                     ))}

@@ -1,0 +1,316 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { base_url } from "../api";
+import ItemCard from "../components/item_card";
+import ItemsFilter from "../components/items_filter";
+
+const logo_neolaia = "/logoNEOLAiA.png";
+const eu_logo = "/eu_logo.png";
+
+function ItemsList() {
+    const navigate = useNavigate();
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({
+        search: '',
+        category_id: '',
+        university: '',
+        item_status: '',
+        erc_area: '',
+        erc_panel: '',
+        erc_keyword: ''
+    });
+    const [showFilters, setShowFilters] = useState(false);
+
+    useEffect(() => {
+        fetchItems();
+    }, [filters]);
+
+    const fetchItems = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            // Build query string from filters
+            const queryParams = new URLSearchParams();
+            
+            // Multi-field search using $or operator
+            if (filters.search) {
+                const searchTerm = filters.search;
+                // Add multiple field searches with $or operator
+                queryParams.append('filters[$or][0][name][$containsi]', searchTerm);
+                queryParams.append('filters[$or][1][description][$containsi]', searchTerm);
+                queryParams.append('filters[$or][2][learning_outcomes][$containsi]', searchTerm);
+                queryParams.append('filters[$or][3][speakers][$containsi]', searchTerm);
+                queryParams.append('filters[$or][4][pedagogical_objectives][$containsi]', searchTerm);
+                queryParams.append('filters[$or][5][level_of_study][$containsi]', searchTerm);
+                queryParams.append('filters[$or][6][seller_name][$containsi]', searchTerm);
+                queryParams.append('filters[$or][7][multimedial_material_provided][$containsi]', searchTerm);
+            }
+            
+            if (filters.category_id) {
+                queryParams.append('filters[category_id][$eq]', filters.category_id);
+            }
+            if (filters.university) {
+                queryParams.append('filters[university][$eq]', filters.university);
+            }
+            if (filters.item_status) {
+                queryParams.append('filters[item_status][$eq]', filters.item_status);
+            }
+            
+            // ERC Area filter - filter by erc_area field in items
+            if (filters.erc_area) {
+                queryParams.append('filters[erc_area][$eq]', filters.erc_area);
+            }
+            
+            // ERC Panel filter - only apply if erc_area is also selected
+            if (filters.erc_panel && filters.erc_area) {
+                queryParams.append('filters[erc_panel][$eq]', filters.erc_panel);
+            }
+            
+            // ERC Keyword filter - only apply if both erc_area and erc_panel are selected
+            if (filters.erc_keyword && filters.erc_panel && filters.erc_area) {
+                queryParams.append('filters[erc_keyword][$eq]', filters.erc_keyword);
+            }
+
+            console.log("Fetching items with filters:", queryParams.toString());
+
+            const response = await axios.get(
+                `${base_url}/items?${queryParams.toString()}`
+            );
+            
+            setItems(response.data.data || []);
+            setLoading(false);
+        } catch (err) {
+            console.error("Error fetching items:", err);
+            setError("Failed to load items. Please try again.");
+            setLoading(false);
+        }
+    };
+
+    const handleFilterChange = (newFilters) => {
+        setFilters(newFilters);
+    };
+
+    const clearFilters = () => {
+        setFilters({
+            search: '',
+            category_id: '',
+            university: '',
+            item_status: '',
+            erc_area: '',
+            erc_panel: '',
+            erc_keyword: ''
+        });
+    };
+
+    return (
+        <div style={{ 
+            minHeight: '100vh',
+            backgroundColor: '#fafafa',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            {/* Header */}
+            <div style={{
+                padding: '1rem 0',
+                borderBottom: '1px solid #dee2e6',
+                backgroundColor: 'white',
+                width: '100%'
+            }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0 1.5rem',
+                    maxWidth: '1400px',
+                    margin: '0 auto'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <img 
+                            src={logo_neolaia} 
+                            alt='Logo NEOLAiA' 
+                            style={{ maxHeight: '50px', height: 'auto', cursor: 'pointer' }}
+                            onClick={() => navigate('/')}
+                        />
+                        <h1 style={{ 
+                            fontSize: '1.25rem',
+                            fontWeight: 'bold',
+                            color: '#667eea',
+                            margin: 0
+                        }}>
+                        </h1>
+                    </div>
+                    <img 
+                        src={eu_logo} 
+                        alt='Logo EU' 
+                        style={{ maxHeight: '45px', height: 'auto' }}
+                    />
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div style={{ 
+                flex: 1,
+                maxWidth: '1400px',
+                width: '100%',
+                margin: '0 auto',
+                padding: '2rem 1rem'
+            }}>
+                {/* Page Header with Filter Toggle */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '2rem',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                }}>
+                    <div>
+                        <h2 style={{ 
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            color: '#213547',
+                            margin: '0 0 0.5rem 0'
+                        }}>
+                            Browse Items
+                        </h2>
+                        <p style={{ color: '#6c757d', margin: 0 }}>
+                            {items.length} {items.length === 1 ? 'item' : 'items'} found
+                        </p>
+                    </div>
+                    
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'linear-gradient(135deg, #7c6fd6 0%, #8b7ad6 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            boxShadow: '0 2px 4px rgba(124, 111, 214, 0.2)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(124, 111, 214, 0.2)';
+                        }}
+                    >
+                        {showFilters ? '✕ Hide Filters' : '⚙ Show Filters'}
+                    </button>
+                </div>
+
+                <div style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: showFilters ? '300px 1fr' : '1fr',
+                    gap: '2rem',
+                    alignItems: 'start'
+                }}>
+                    {/* Filter Sidebar */}
+                    {showFilters && (
+                        <ItemsFilter 
+                            filters={filters}
+                            onFilterChange={handleFilterChange}
+                            onClearFilters={clearFilters}
+                        />
+                    )}
+
+                    {/* Items Grid */}
+                    <div>
+                        {error && (
+                            <div style={{
+                                padding: '1rem',
+                                backgroundColor: '#f8d7da',
+                                border: '1px solid #f5c2c7',
+                                borderRadius: '8px',
+                                marginBottom: '1.5rem',
+                                color: '#842029'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div style={{ 
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                minHeight: '400px'
+                            }}>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{
+                                        width: '3rem',
+                                        height: '3rem',
+                                        border: '0.3rem solid #f3f3f3',
+                                        borderTop: '0.3rem solid #7c6fd6',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite',
+                                        margin: '0 auto'
+                                    }}></div>
+                                    <p style={{ marginTop: '1rem', color: '#6c757d' }}>Loading items...</p>
+                                </div>
+                            </div>
+                        ) : items.length === 0 ? (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '4rem 2rem',
+                                backgroundColor: 'white',
+                                borderRadius: '16px',
+                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                            }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📭</div>
+                                <h3 style={{ color: '#213547', marginBottom: '0.5rem' }}>No items found</h3>
+                                <p style={{ color: '#6c757d' }}>Try adjusting your filters or search criteria</p>
+                                {(filters.search || filters.category_id || filters.university || filters.item_status || filters.erc_area) && (
+                                    <button
+                                        onClick={clearFilters}
+                                        style={{
+                                            marginTop: '1rem',
+                                            padding: '0.75rem 1.5rem',
+                                            backgroundColor: '#7c6fd6',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        Clear Filters
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                                gap: '1.5rem'
+                            }}>
+                                {items.map(item => (
+                                    <ItemCard key={item.id} item={item} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
+        </div>
+    );
+}
+
+export default ItemsList;

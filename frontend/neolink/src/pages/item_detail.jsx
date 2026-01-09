@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { base_url } from "../api";
+import { jwtDecode } from "jwt-decode";
 
 const logo_neolaia = "/logoNEOLAiA.png";
 const eu_logo = "/eu_logo.png";
@@ -18,11 +19,34 @@ function ItemDetail() {
     const [coverImage, setCoverImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isInterested, setIsInterested] = useState(false);
+    const [interestLoading, setInterestLoading] = useState(false);
+    const [interestMessage, setInterestMessage] = useState(null);
+    const [userData, setUserData] = useState(null);
 
     // Get base URL without /api for uploads
     const getUploadBaseUrl = () => {
         return base_url.replace('/api', '');
     };
+
+    const token = location.state?.token || localStorage.getItem("token");
+
+    useEffect(() => {
+            if (token) {
+                try {
+                    const decoded = jwtDecode(token);
+                    setUserData(decoded);
+                } catch (err) {
+                    console.error("Error decoding token:", err);
+                    setError("Invalid token");
+                    localStorage.removeItem("token");
+                    setTimeout(() => navigate("/login"), 2000);
+                }
+            } else {
+                setError("No token provided");
+                setTimeout(() => navigate("/login"), 2000);
+            }
+        }, [token, navigate]);
 
     useEffect(() => {
         fetchItemDetails();
@@ -68,6 +92,61 @@ function ItemDetail() {
             console.error("Error fetching item details:", err);
             setError("Failed to load item details. Please try again.");
             setLoading(false);
+        }
+    };
+
+    const handleInterestClick = async () => {
+        if (!token) {
+            setInterestMessage({
+                type: 'error',
+                text: 'Please log in to express interest'
+            });
+            setTimeout(() => setInterestMessage(null), 3000);
+            return;
+        }
+
+        setInterestLoading(true);
+        setInterestMessage(null);
+
+        try {
+            // Make the POST request to express interest
+            const response = await axios.post(
+                `${base_url}/items/${documentId}/interest`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            setIsInterested(true);
+            setInterestMessage({
+                type: 'success',
+                text: 'Your interest has been recorded successfully!'
+            });
+
+            // Clear message after 3 seconds
+            setTimeout(() => setInterestMessage(null), 3000);
+        } catch (err) {
+            console.error("Error expressing interest:", err);
+            
+            let errorText = 'Failed to record interest. Please try again.';
+            if (err.response?.status === 401) {
+                errorText = 'Session expired. Please log in again.';
+            } else if (err.response?.data?.message) {
+                errorText = err.response.data.message;
+            }
+
+            setInterestMessage({
+                type: 'error',
+                text: errorText
+            });
+
+            // Clear error message after 5 seconds
+            setTimeout(() => setInterestMessage(null), 5000);
+        } finally {
+            setInterestLoading(false);
         }
     };
 
@@ -175,6 +254,16 @@ function ItemDetail() {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
             `}</style>
 
             {/* Header */}
@@ -216,6 +305,28 @@ function ItemDetail() {
                 margin: '0 auto',
                 padding: '2rem 1rem'
             }}>
+                {/* Notification Message */}
+                {interestMessage && (
+                    <div style={{
+                        animation: 'slideDown 0.3s ease-out',
+                        marginBottom: '1rem',
+                        padding: '1rem 1.5rem',
+                        borderRadius: '12px',
+                        backgroundColor: interestMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+                        border: `1px solid ${interestMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+                        color: interestMessage.type === 'success' ? '#155724' : '#721c24',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        fontWeight: '500'
+                    }}>
+                        <span style={{ fontSize: '1.25rem' }}>
+                            {interestMessage.type === 'success' ? '✓' : '⚠'}
+                        </span>
+                        {interestMessage.text}
+                    </div>
+                )}
+
                 {/* Back Button */}
                 <button
                     onClick={() => navigate('/items')}
@@ -276,8 +387,15 @@ function ItemDetail() {
                     padding: '2rem',
                     marginBottom: '2rem'
                 }}>
-                    {/* Status Badge */}
-                    <div style={{ marginBottom: '1.5rem' }}>
+                    {/* Status Badge and Interest Button Row */}
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        marginBottom: '1.5rem',
+                        flexWrap: 'wrap',
+                        gap: '1rem'
+                    }}>
                         <span style={{
                             display: 'inline-block',
                             padding: '0.5rem 1rem',
@@ -290,6 +408,66 @@ function ItemDetail() {
                         }}>
                             {item.item_status}
                         </span>
+
+                        {/* I'm Interested Button */}
+                        {token && userData && item.seller && userData.user_id !== item.seller.documentId &&
+                        <button
+                            onClick={handleInterestClick}
+                            disabled={interestLoading || isInterested}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1.5rem',
+                                backgroundColor: isInterested ? '#28a745' : '#7c6fd6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: interestLoading || isInterested ? 'not-allowed' : 'pointer',
+                                fontWeight: '600',
+                                fontSize: '1rem',
+                                transition: 'all 0.3s',
+                                opacity: interestLoading || isInterested ? 0.7 : 1,
+                                boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!interestLoading && !isInterested) {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                    e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!interestLoading && !isInterested) {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
+                                }
+                            }}
+                        >
+                            {interestLoading ? (
+                                <>
+                                    <div style={{
+                                        width: '1rem',
+                                        height: '1rem',
+                                        border: '2px solid #ffffff',
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 0.8s linear infinite'
+                                    }}></div>
+                                    <span>Processing...</span>
+                                </>
+                            ) : isInterested ? (
+                                <>
+                                    <span>✓</span>
+                                    <span>Interest Recorded</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>💡</span>
+                                    <span>I'm Interested</span>
+                                </>
+                            )}
+                        </button>
+            }
                     </div>
 
                     {/* Title */}
@@ -320,7 +498,7 @@ function ItemDetail() {
                                         Offered By
                                     </div>
                                     <div style={{ fontWeight: '600', color: '#495057' }}>
-                                        {item.seller_name}
+                                        {item.seller.full_name}
                                     </div>
                                 </div>
                             </div>

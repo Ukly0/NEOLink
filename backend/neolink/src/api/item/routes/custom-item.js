@@ -7,6 +7,14 @@ module.exports = {
             config:{
                 middlewares: ["global::otp-auth"]
             }
+        },
+        {
+            method: 'POST',
+            path: '/custom-item/interest/',
+            handler: 'custom-item.interest',
+            config:{
+                middlewares: ["global::otp-auth"]
+            }
         }
     ]
 }

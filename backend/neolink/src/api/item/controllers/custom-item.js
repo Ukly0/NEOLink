@@ -8,7 +8,6 @@ module.exports = {
             const {group_name, group_display_name, group_description, category_name, category_color} = ctx.request.body;
             const email = ctx.request.body.data.email
             const user_id = ctx.request.body.data.user_id
-            console.log("ctx.request.body:", ctx.request.body);
             try{
                 let virtual_cafe_username = "";
                 const response_profile = await axios.get(`${process.env.DISCOURSE_URL}/admin/users/list/active.json`, {
@@ -176,6 +175,140 @@ module.exports = {
         } catch (error){
             console.log(error);
             return ctx.internalServerError(error.message);
+        }
+    },
+    async interest(ctx, next){
+        const email = ctx.request.body.data.email
+        const user_id = ctx.request.body.data.user_id
+        const {item_id} = ctx.request.body;
+
+        const entry = await strapi.db.query("api::item.item").findOne({
+            select: ['discourse_group_id'],
+            where: { documentId: item_id },
+            populate: {
+                interested_users: {
+                    select: ['documentId']
+                }
+            }
+        });
+
+        if (entry && entry.discourse_group_id){
+
+            // Check if user is already interested
+            const isAlreadyInterested = entry.interested_users?.some(
+                user => user.documentId === user_id
+            );
+
+            if (isAlreadyInterested) {
+                return ctx.send({message: 'User is already interested in this item'});
+            }
+
+            const user_entry = await strapi.db.query("api::seller.seller").findOne({
+                select: ['virtual_cafe_id'],
+                where: { documentId: user_id },
+            });
+            
+            let virtual_cafe_username = "";
+            if (!user_entry || !user_entry.virtual_cafe_id){
+                // User doesn't exist, create user via Discourse Connect                    
+                virtual_cafe_username = email.split('@')[0];
+                
+                const ssoPayload = new URLSearchParams({
+                    external_id: user_id, 
+                    email: email,
+                    username: virtual_cafe_username,
+                    name: virtual_cafe_username,
+                    require_activation: 'false',
+                });
+
+                const base64Payload = Buffer.from(ssoPayload.toString()).toString('base64');
+                const signature = crypto
+                    .createHmac('sha256', process.env.DISCOURSE_CONNECT_SECRET)
+                    .update(base64Payload)
+                    .digest('hex');
+
+                try {
+                    const syncResponse = await axios.post(
+                        `${process.env.DISCOURSE_URL}/admin/users/sync_sso`,
+                        {
+                            sso: base64Payload,
+                            sig: signature
+                        },
+                        {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system',
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+                    console.log('User synced successfully:', syncResponse.data);
+                    // Note: You may want to save the username to the database here
+                } catch (error) {
+                    console.log("Error syncing user: " + error);
+                    return ctx.internalServerError('Error syncing user');
+                }
+            } else {
+                    try{
+                        const response = await axios.get(`${process.env.DISCOURSE_URL}/admin/users/list/active.json`, {
+                            params: {
+                                id: user_entry.virtual_cafe_id,
+                                show_emails: true
+                            },
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                    });
+                    const virtual_cafe_profile = response.data;
+                    if (virtual_cafe_profile && virtual_cafe_profile.length > 0){
+                        virtual_cafe_username = virtual_cafe_profile[0].username || "";
+                    } 
+                    } catch (error){
+                        console.log("Error fetching Discourse profile for email: " + email);
+                        console.log(error);
+                    }
+            }
+            try{
+                const virtual_cafe_response = await axios.put(
+                    `${process.env.DISCOURSE_URL}/groups/${entry.discourse_group_id}/members.json`,
+                    { usernames: user_entry?.virtual_cafe_username || email.split('@')[0] },
+                    {
+                        headers: {
+                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                            'Api-Username': 'system'
+                        }
+                    }
+                );
+                if (virtual_cafe_response.status === 200){
+                    // Add user to interested_users relation
+                    try {
+                        await strapi.documents("api::item.item").update({
+                            documentId: item_id,
+                            data: {
+                                interested_users: {
+                                    connect: [{ documentId: user_id }]
+                                }
+                            }
+                        });
+
+                        await strapi.documents("api::item.item").publish({
+                            documentId: item_id
+                        });
+                        
+                        console.log('User added to interested_users relation');
+                    } catch (error) {
+                        console.log("Error adding user to interested_users relation: " + error);
+                        return ctx.internalServerError('Error adding user to interested_users relation');
+                    }
+                    return ctx.send({message: 'User added to the group successfully'});
+                }
+            } catch (error){
+                console.log("Error adding user to the group: " + error);
+                return ctx.internalServerError('Error adding user to the group');
+            }
+        } else {
+            return ctx.notFound('Item or discourse group not found');
         }
     }
 }

@@ -32,36 +32,45 @@ function ItemDetail() {
     const token = location.state?.token || localStorage.getItem("token");
 
     useEffect(() => {
-            if (token) {
-                try {
-                    const decoded = jwtDecode(token);
-                    setUserData(decoded);
-                } catch (err) {
-                    console.error("Error decoding token:", err);
-                    setError("Invalid token");
-                    localStorage.removeItem("token");
-                    setTimeout(() => navigate("/login"), 2000);
-                }
-            } else {
-                setError("No token provided");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserData(decoded);
+            } catch (err) {
+                console.error("Error decoding token:", err);
+                setError("Invalid token");
+                localStorage.removeItem("token");
                 setTimeout(() => navigate("/login"), 2000);
             }
-        }, [token, navigate]);
+        } else {
+            setError("No token provided");
+            setTimeout(() => navigate("/login"), 2000);
+        }
+    }, [token, navigate]);
 
     useEffect(() => {
-        fetchItemDetails();
-    }, [documentId]);
+        if (userData) {
+            fetchItemDetails();
+        }
+    }, [documentId, userData]);
 
     const fetchItemDetails = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            // Fetch main item data
+            // Fetch main item data with interested_users populated
             const itemResponse = await axios.get(`${base_url}/items/${documentId}?populate=*`);
             const itemData = itemResponse.data.data;
             setItem(itemData);
 
+        // Check if current user is already interested
+        if (userData && itemData.interested_users && Array.isArray(itemData.interested_users)) {
+            const userIsInterested = itemData.interested_users.some(
+                user => user.documentId === userData.user_id
+            );
+            setIsInterested(userIsInterested);
+        }
             // Fetch related data in parallel
             const promises = [];
 
@@ -109,25 +118,20 @@ function ItemDetail() {
         setInterestMessage(null);
 
         try {
-            // Make the POST request to express interest
-            const response = await axios.post(
-                `${base_url}/items/${documentId}/interest`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            setIsInterested(true);
-            setInterestMessage({
-                type: 'success',
-                text: 'Your interest has been recorded successfully!'
+            const response = await axios.post(`${base_url}/custom-item/interest/`, {
+                item_id: documentId,
+                token: token,
             });
-
-            // Clear message after 3 seconds
-            setTimeout(() => setInterestMessage(null), 3000);
+            
+            if (response.status === 200) {
+                setIsInterested(true);
+                setInterestMessage({
+                    type: 'success',
+                    text: response.data.message || 'You have been added to the Virtual Cafè discussion group!'
+                });
+                // Clear message after 3 seconds
+                setTimeout(() => setInterestMessage(null), 3000);
+            }
         } catch (err) {
             console.error("Error expressing interest:", err);
             
@@ -410,64 +414,64 @@ function ItemDetail() {
                         </span>
 
                         {/* I'm Interested Button */}
-                        {token && userData && item.seller && userData.user_id !== item.seller.documentId &&
-                        <button
-                            onClick={handleInterestClick}
-                            disabled={interestLoading || isInterested}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.75rem 1.5rem',
-                                backgroundColor: isInterested ? '#28a745' : '#7c6fd6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: interestLoading || isInterested ? 'not-allowed' : 'pointer',
-                                fontWeight: '600',
-                                fontSize: '1rem',
-                                transition: 'all 0.3s',
-                                opacity: interestLoading || isInterested ? 0.7 : 1,
-                                boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!interestLoading && !isInterested) {
-                                    e.target.style.transform = 'translateY(-2px)';
-                                    e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!interestLoading && !isInterested) {
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
-                                }
-                            }}
-                        >
-                            {interestLoading ? (
-                                <>
-                                    <div style={{
-                                        width: '1rem',
-                                        height: '1rem',
-                                        border: '2px solid #ffffff',
-                                        borderTop: '2px solid transparent',
-                                        borderRadius: '50%',
-                                        animation: 'spin 0.8s linear infinite'
-                                    }}></div>
-                                    <span>Processing...</span>
-                                </>
-                            ) : isInterested ? (
-                                <>
-                                    <span>✓</span>
-                                    <span>Interest Recorded</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>💡</span>
-                                    <span>I'm Interested</span>
-                                </>
-                            )}
-                        </button>
-            }
+                        {token && userData && item.seller && userData.user_id !== item.seller.documentId && (
+                            <button
+                                onClick={handleInterestClick}
+                                disabled={interestLoading || isInterested}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.75rem 1.5rem',
+                                    backgroundColor: isInterested ? '#28a745' : '#7c6fd6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: interestLoading || isInterested ? 'not-allowed' : 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '1rem',
+                                    transition: 'all 0.3s',
+                                    opacity: interestLoading || isInterested ? 0.7 : 1,
+                                    boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!interestLoading && !isInterested) {
+                                        e.target.style.transform = 'translateY(-2px)';
+                                        e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!interestLoading && !isInterested) {
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
+                                    }
+                                }}
+                            >
+                                {interestLoading ? (
+                                    <>
+                                        <div style={{
+                                            width: '1rem',
+                                            height: '1rem',
+                                            border: '2px solid #ffffff',
+                                            borderTop: '2px solid transparent',
+                                            borderRadius: '50%',
+                                            animation: 'spin 0.8s linear infinite'
+                                        }}></div>
+                                        <span>Processing...</span>
+                                    </>
+                                ) : isInterested ? (
+                                    <>
+                                        <span>✓</span>
+                                        <span>Already Interested</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>💡</span>
+                                        <span>I'm Interested</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
 
                     {/* Title */}

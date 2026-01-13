@@ -62,10 +62,10 @@ module.exports = {
                         console.error('Error syncing user via Discourse Connect:', syncError.response?.data || syncError.message);
                     }
                 }
-                let group_name_sanitazed = group_name.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+                let group_name_sanitazed = group_name.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '').slice(0, 20);
                 const group_payload = {
                     name: group_name_sanitazed,
-                    full_name: group_display_name || group_name,
+                    full_name: `[NEOLink] ${group_display_name || group_name}`,
                     visibility_level: 0,
                     bio_raw: group_description || "",
                     public_admission: false,
@@ -95,7 +95,7 @@ module.exports = {
                 let discourse_category_id = null;
                 if (category_name !== null || category_name !== '') {
                     const category_payload = {
-                        name: category_name,
+                        name: `[NEOLink] ${category_name}`,
                         color: (category_color || "0088CC").replace('#', ''),
                         text_color: "FFFFFF",
                         slug:  category_name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, ''),

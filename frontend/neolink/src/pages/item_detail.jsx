@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { base_url } from "../api";
 import { jwtDecode } from "jwt-decode";
+import Navbar from "../components/navbar.jsx";
 
 const logo_neolaia = "/logoNEOLAiA.png";
 const eu_logo = "/eu_logo.png";
@@ -326,36 +327,7 @@ function ItemDetail() {
                 }
             `}</style>
 
-            {/* Header */}
-            <div style={{
-                padding: '1rem 0',
-                borderBottom: '1px solid #dee2e6',
-                backgroundColor: 'white',
-                width: '100%'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0 1.5rem',
-                    maxWidth: '1400px',
-                    margin: '0 auto'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <img 
-                            src={logo_neolaia} 
-                            alt='Logo NEOLAiA' 
-                            style={{ maxHeight: '50px', height: 'auto', cursor: 'pointer' }}
-                            onClick={() => navigate('/')}
-                        />
-                    </div>
-                    <img 
-                        src={eu_logo} 
-                        alt='Logo EU' 
-                        style={{ maxHeight: '45px', height: 'auto' }}
-                    />
-                </div>
-            </div>
+            <Navbar token={token} />
 
             {/* Main Content */}
             <div style={{

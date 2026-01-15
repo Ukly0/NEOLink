@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { base_url } from "../api";
+import Navbar from "./navbar";
 
 const logo_neolink = `${import.meta.env.BASE_URL}logo.png`;
 const eu_logo = `${import.meta.env.BASE_URL}eu_logo.png`;
@@ -92,35 +93,7 @@ function CategorySelection({ token, onNext, initialCategory }) {
                 }
             `}</style>
             
-            {/* Header */}
-            <div style={{
-                padding: '1rem 0',
-                borderBottom: '1px solid #dee2e6',
-                backgroundColor: 'white',
-                width: '100%'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0 1.5rem',
-                    maxWidth: '1400px',
-                    margin: '0 auto'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <img 
-                            src={logo_neolink} 
-                            alt='Logo NEOLink' 
-                            style={{ maxHeight: '50px', height: 'auto' }}
-                        />
-                    </div>
-                    <img 
-                        src={eu_logo} 
-                        alt='Logo EU' 
-                        style={{ maxHeight: '45px', height: 'auto' }}
-                    />
-                </div>
-            </div>
+            <Navbar token={token} />
 
             {/* Progress Indicator */}
             <div style={{

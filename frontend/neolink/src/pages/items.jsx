@@ -4,6 +4,7 @@ import axios from "axios";
 import { base_url } from "../api";
 import ItemCard from "../components/item_card";
 import ItemsFilter from "../components/items_filter";
+import Navbar from "../components/navbar";
 
 const logo_neolaia = "/logoNEOLAiA.png";
 const eu_logo = "/eu_logo.png";
@@ -30,6 +31,7 @@ function ItemsList() {
         expiration_to: ''
     });
     const [showFilters, setShowFilters] = useState(false);
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         fetchItems();
@@ -160,36 +162,7 @@ function ItemsList() {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            {/* Header */}
-            <div style={{
-                padding: '1rem 0',
-                borderBottom: '1px solid #dee2e6',
-                backgroundColor: 'white',
-                width: '100%'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0 1.5rem',
-                    maxWidth: '1400px',
-                    margin: '0 auto'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <img 
-                            src={logo_neolaia} 
-                            alt='Logo NEOLAiA' 
-                            style={{ maxHeight: '50px', height: 'auto', cursor: 'pointer' }}
-                            onClick={() => navigate('/')}
-                        />
-                    </div>
-                    <img 
-                        src={eu_logo} 
-                        alt='Logo EU' 
-                        style={{ maxHeight: '45px', height: 'auto' }}
-                    />
-                </div>
-            </div>
+            <Navbar token={token} />
 
             {/* Main Content */}
             <div style={{ 

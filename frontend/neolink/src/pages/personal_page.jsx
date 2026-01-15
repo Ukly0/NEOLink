@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 const eu_logo = `${import.meta.env.BASE_URL}eu_logo.png`;
 const logo_neolink = `${import.meta.env.BASE_URL}logo.png`;
+import Navbar from "../components/navbar";
 
 function PersonalPage() {
     const [userData, setUserData] = useState(null);
@@ -109,52 +110,7 @@ function PersonalPage() {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            {/* Header */}
-            <div className="py-3 py-md-4 border-bottom bg-white" style={{ width: '100%' }}>
-                <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center px-3 px-md-5 gap-3">
-                    <div className="d-flex align-items-center gap-2 gap-md-3">
-                        <img 
-                            src={logo_neolink} 
-                            alt='Logo NEOLAiA' 
-                            className="img-fluid" 
-                            style={{ maxHeight: '50px', height: 'auto' }}
-                        />
-                    </div>
-                    <div className="d-flex align-items-center gap-3">
-                        <img 
-                            src={eu_logo} 
-                            alt='Logo EU' 
-                            className="img-fluid" 
-                            style={{ maxHeight: '45px', height: 'auto' }}
-                        />
-                        <button
-                            onClick={handleLogout}
-                            style={{
-                                padding: '0.5rem 1.5rem',
-                                background: 'linear-gradient(135deg, #7c6fd6 0%, #8b7ad6 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '600',
-                                fontSize: '0.9rem',
-                                transition: 'all 0.3s',
-                                boxShadow: '0 2px 4px rgba(124, 111, 214, 0.2)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.target.style.transform = 'translateY(-2px)';
-                                e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 2px 4px rgba(124, 111, 214, 0.2)';
-                            }}
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <Navbar token={token} onLogout={handleLogout} />
 
             {/* Main Content */}
             <div style={{ 

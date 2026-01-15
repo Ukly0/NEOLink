@@ -6,6 +6,7 @@ import CreateItemFormStep2 from "../components/discourse_setting.jsx";
 import axios from "axios";
 import { base_url } from "../api";
 import { token_is_valid } from "../utils";
+import Navbar from "../components/navbar.jsx";
 
 function CreateItem() {
     const location = useLocation();

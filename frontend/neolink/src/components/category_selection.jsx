@@ -3,8 +3,11 @@ import axios from "axios";
 import { base_url } from "../api";
 import Navbar from "./navbar";
 
-const logo_neolink = `${import.meta.env.BASE_URL}logo.png`;
-const eu_logo = `${import.meta.env.BASE_URL}eu_logo.png`;
+const bip_logo = "/bip.png"
+const coil_logo = "/coil.png"
+const focus_logo = "/focus.png"
+const neoteach_logo = "/neoteach.png"
+const virtual_logo = "/virtual.png"
 
 function CategorySelection({ token, onNext, initialCategory }) {
     const [categories, setCategories] = useState([]);
@@ -237,7 +240,8 @@ function CategorySelection({ token, onNext, initialCategory }) {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                         gap: '1.5rem',
-                        marginBottom: '3rem'
+                        marginBottom: '3rem',
+                        textAlign: 'justify'
                     }}>
                         {categories.map((category, index) => {
                             const categoryName = category.attributes?.name || category.name;
@@ -287,18 +291,25 @@ function CategorySelection({ token, onNext, initialCategory }) {
                                     
                                     {/* Icon placeholder - you can customize these per category */}
                                     <div style={{
-                                        width: '60px',
-                                        height: '60px',
-                                        borderRadius: '12px',
-                                        backgroundColor: isSelected ? '#7c6fd6' : '#f0f0ff',
                                         display: 'flex',
-                                        alignItems: 'center',
+                                        flexDirection: 'column',     // make children stack vertically
+                                        alignItems: 'center',        // center horizontally
                                         justifyContent: 'center',
-                                        fontSize: '1.8rem',
                                         marginBottom: '1.25rem',
-                                        transition: 'all 0.3s ease'
                                     }}>
-                                        {getCategoryIcon(categoryName)}
+                                        <div style={{
+                                            width: '100px',
+                                            height: '100px',
+                                            borderRadius: '12px',
+                                            backgroundColor: isSelected ? '#7c6fd6' : '#f0f0ff',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '1.8rem',
+                                            transition: 'all 0.3s ease'
+                                        }}>
+                                            <img src={getCategoryIcon(categoryName)} alt={categoryName} style={{ width: '110px', height: '90px', padding: '5px' }} />
+                                        </div>
                                     </div>
                                     
                                     <h3 style={{
@@ -306,7 +317,8 @@ function CategorySelection({ token, onNext, initialCategory }) {
                                         color: isSelected ? '#7c6fd6' : '#213547',
                                         fontSize: '1.3rem',
                                         fontWeight: '600',
-                                        transition: 'color 0.3s ease'
+                                        transition: 'color 0.3s ease',
+                                        textAlign: 'center'
                                     }}>
                                         {categoryName}
                                     </h3>
@@ -315,9 +327,10 @@ function CategorySelection({ token, onNext, initialCategory }) {
                                         margin: 0,
                                         color: '#6c757d',
                                         fontSize: '0.95rem',
-                                        lineHeight: '1.5'
+                                        lineHeight: '1.5',
+
                                     }}>
-                                        {getCategoryDescription(categoryName)}
+                                        {getCategoryDescription(categoryName, categories)}
                                     </p>
                                 </div>
                             );
@@ -399,6 +412,21 @@ function CategorySelection({ token, onNext, initialCategory }) {
 //assign icon to a category
 function getCategoryIcon(categoryName) {
     const name = categoryName?.toLowerCase() || '';
+    if(name.includes('bip')){
+        return bip_logo
+    }
+    if (name.includes('coil')){
+        return coil_logo
+    }
+    if (name.includes('focus')){
+        return focus_logo
+    }
+    if (name.includes('neoteach')){
+        return neoteach_logo
+    }
+    if (name.includes('virtual')){
+        return virtual_logo
+    }
     
     if (name.includes('course') || name.includes('class')) return '📚';
     if (name.includes('event') || name.includes('workshop')) return '🎯';
@@ -413,32 +441,13 @@ function getCategoryIcon(categoryName) {
 }
 
 // Show a description for each category
-function getCategoryDescription(categoryName) {
+function getCategoryDescription(categoryName, categories) {
     const name = categoryName?.toLowerCase() || '';
-    
-    if (name.includes('course') || name.includes('class')) {
-        return 'Academic courses, classes, and structured learning programs';
-    }
-    if (name.includes('event') || name.includes('workshop')) {
-        return 'Workshops, training sessions, and hands-on learning events';
-    }
-    if (name.includes('research') || name.includes('project')) {
-        return 'Research projects, studies, and academic investigations';
-    }
-    if (name.includes('seminar') || name.includes('lecture')) {
-        return 'Seminars, lectures, and academic presentations';
-    }
-    if (name.includes('conference')) {
-        return 'Academic conferences, symposiums, and gatherings';
-    }
-    if (name.includes('resource') || name.includes('material')) {
-        return 'Educational resources, materials, and learning tools';
-    }
-    if (name.includes('thesis') || name.includes('dissertation')) {
-        return 'Thesis work, dissertations, and major academic papers';
-    }
-    
-    return 'Select this category for your item';
+    const match = categories?.find(
+        category => category?.name?.toLowerCase() === name
+    );
+
+    return match?.description || 'Select this category for your item';
 }
 
 export default CategorySelection;

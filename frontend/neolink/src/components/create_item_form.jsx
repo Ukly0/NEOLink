@@ -4,6 +4,7 @@ import axios from "axios";
 import { base_url } from "../api";
 import { shouldShowField, getCategoryFieldDescription } from "../category_field_config";
 import Navbar from "./navbar";
+import { getCategoryIcon } from "../utils";
 
 const logo_neolink = `${import.meta.env.BASE_URL}logo.png`;
 const eu_logo = `${import.meta.env.BASE_URL}eu_logo.png`;
@@ -460,7 +461,7 @@ function CreateItemForm({ token, initialData, selectedCategory, onNext, onBack }
                         marginBottom: '1rem',
                         border: '1px solid #7c6fd6'
                     }}>
-                        <span style={{ fontSize: '1.2rem' }}>📂</span>
+                        <img src={getCategoryIcon(categoryName)} alt={categoryName} style={{ width: '50px', height: '40px', padding: '5px' }} />
                         <span style={{ 
                             fontWeight: '600',
                             color: '#7c6fd6'

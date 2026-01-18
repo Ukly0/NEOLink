@@ -28,7 +28,7 @@ function Navbar({ token }) {
     };
 
     const navItems = [
-        { path: "/", label: "Home", icon: "🏠" },
+        { path: "/personal-page", label: "Home", icon: "🏠" },
         { path: "/items", label: "Browse Items", icon: "📚" },
         ...(token ? [
             { path: "/create-item", label: "Create Item", icon: "➕" },

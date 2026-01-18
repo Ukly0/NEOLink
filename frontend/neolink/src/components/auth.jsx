@@ -74,7 +74,7 @@ const Auth = ({ accept_policy_message, privacy_policy }) => {
                 />
             )}
             
-            {email && <OTPForm onAuthenticate={handle_authentication} />}
+            {email && <OTPForm onAuthenticate={handle_authentication} email={email} />}
         </div>
     );
 };

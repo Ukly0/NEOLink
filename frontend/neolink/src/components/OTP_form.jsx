@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { base_url } from '../api';
 
-const OTPForm = ({ onAuthenticate }) => {
+const OTPForm = ({ onAuthenticate, email }) => {
     const [otp, setOTP] = useState('');
     const [error, setError] = useState('');
 
@@ -16,6 +18,12 @@ const OTPForm = ({ onAuthenticate }) => {
         setError('');
         onAuthenticate(trimmed);
     };
+
+    const handleResend = async () => {
+        const response = await axios.post(`${base_url}/custom-seller/create`, {
+                email,
+            });
+    }
 
     return (
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -124,7 +132,7 @@ const OTPForm = ({ onAuthenticate }) => {
                 Didn't receive the code? 
                 <button 
                     type="button"
-                    onClick={() => window.location.reload()}
+                    onClick={() => handleResend()}
                     style={{
                         background: 'none',
                         border: 'none',

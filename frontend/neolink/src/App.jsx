@@ -8,6 +8,7 @@ import PersonalPage from './pages/personal_page.jsx';
 import CreateItem from './pages/create_item.jsx';
 import Items from './pages/items.jsx';
 import ItemDetail from './pages/item_detail.jsx';
+import EditItem from './pages/edit_item.jsx';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route basename={'/neolink'} path="/create-item" element={<CreateItem />} />
           <Route basename={'/neolink'} path="/items" element={<Items />} />
           <Route basename={'/neolink'} path="/items/:documentId" element={<ItemDetail />} />
+          <Route basename={'/neolink'} path="/items/:documentId/edit" element={<EditItem />} />
         </Routes>
       </Router>
   );

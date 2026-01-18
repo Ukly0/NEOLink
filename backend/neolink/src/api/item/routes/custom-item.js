@@ -23,6 +23,22 @@ module.exports = {
             config:{
                 middlewares: ["global::otp-auth"]
             }
+        },
+        {
+            method: 'POST',
+            path: '/custom-item/remove-item/',
+            handler: 'custom-item.removeItem',
+            config:{
+                middlewares: ["global::otp-auth"]
+            }
+        },
+        {
+            method: 'POST',
+            path: '/custom-item/update-item/',
+            handler: 'custom-item.updateItem',
+            config:{
+                middlewares: ["global::otp-auth"]
+            }
         }
     ]
 }

@@ -24,6 +24,7 @@ function ItemDetail() {
     const [interestLoading, setInterestLoading] = useState(false);
     const [interestMessage, setInterestMessage] = useState(null);
     const [userData, setUserData] = useState(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     // Get base URL without /api for uploads
     const getUploadBaseUrl = () => {
@@ -64,7 +65,6 @@ function ItemDetail() {
             const itemResponse = await axios.get(`${base_url}/items/${documentId}?populate=*`);
             const itemData = itemResponse.data.data;
             setItem(itemData);
-            console.log(itemData)
 
             // Check if current user is already interested
             if (userData && itemData.interested_users && Array.isArray(itemData.interested_users)) {
@@ -208,6 +208,56 @@ function ItemDetail() {
             setTimeout(() => setInterestMessage(null), 5000);
         } finally {
             setInterestLoading(false);
+        }
+    };
+
+    const handleDeleteItem = async () => {
+        if (!token) {
+            setInterestMessage({
+                type: 'error',
+                text: 'Please log in to delete this item'
+            });
+            setTimeout(() => setInterestMessage(null), 3000);
+            return;
+        }
+
+        setDeleteLoading(true);
+        setInterestMessage(null);
+        try {
+            const response = await axios.post(`${base_url}/custom-item/remove-item/`, {
+                item_id: documentId,
+                token: token
+            });
+            
+            if (response.status === 200 || response.status === 204) {
+                setInterestMessage({
+                    type: 'success',
+                    text: 'Item deleted successfully. Redirecting...'
+                });
+                // Redirect to items list after 2 seconds
+                setTimeout(() => navigate('/items'), 2000);
+            }
+        } catch (err) {
+            console.error("Error deleting item:", err);
+            
+            let errorText = 'Failed to delete item. Please try again.';
+            if (err.response?.status === 401) {
+                errorText = 'Session expired. Please log in again.';
+            } else if (err.response?.status === 403) {
+                errorText = 'You do not have permission to delete this item.';
+            } else if (err.response?.data?.message) {
+                errorText = err.response.data.message;
+            }
+
+            setInterestMessage({
+                type: 'error',
+                text: errorText
+            });
+
+            // Clear error message after 5 seconds
+            setTimeout(() => setInterestMessage(null), 5000);
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -419,7 +469,7 @@ function ItemDetail() {
                     padding: '2rem',
                     marginBottom: '2rem'
                 }}>
-                    {/* Status Badge and Interest Button Row */}
+                    {/* Status Badge and Action Buttons Row */}
                     <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between', 
@@ -441,13 +491,13 @@ function ItemDetail() {
                             {item.item_status}
                         </span>
 
-                        {/* Interest Buttons */}
-                        {token && userData && item.seller && userData.user_id !== item.seller.documentId && (
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                {!isInterested ? (
+                        {/* Action Buttons - Show different buttons based on ownership */}
+                        {token && userData && item.seller && (
+                            userData.user_id === item.seller.documentId ? (
+                                /* Owner Buttons - Modify and Delete */
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
                                     <button
-                                        onClick={handleInterestClick}
-                                        disabled={interestLoading}
+                                        onClick={() => navigate(`/items/${documentId}/edit`)}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -457,27 +507,61 @@ function ItemDetail() {
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '8px',
-                                            cursor: interestLoading ? 'not-allowed' : 'pointer',
+                                            cursor: 'pointer',
                                             fontWeight: '600',
                                             fontSize: '1rem',
                                             transition: 'all 0.3s',
-                                            opacity: interestLoading ? 0.7 : 1,
                                             boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
                                         }}
                                         onMouseEnter={(e) => {
-                                            if (!interestLoading) {
+                                            e.target.style.transform = 'translateY(-2px)';
+                                            e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.transform = 'translateY(0)';
+                                            e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
+                                        }}
+                                    >
+                                        <span>✏️</span>
+                                        <span>Modify Item</span>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                                                handleDeleteItem();
+                                            }
+                                        }}
+                                        disabled={deleteLoading}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.75rem 1.5rem',
+                                            backgroundColor: '#dc3545',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                                            fontWeight: '600',
+                                            fontSize: '1rem',
+                                            transition: 'all 0.3s',
+                                            opacity: deleteLoading ? 0.7 : 1,
+                                            boxShadow: '0 2px 8px rgba(220, 53, 69, 0.3)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!deleteLoading) {
                                                 e.target.style.transform = 'translateY(-2px)';
-                                                e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                                                e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.4)';
                                             }
                                         }}
                                         onMouseLeave={(e) => {
-                                            if (!interestLoading) {
+                                            if (!deleteLoading) {
                                                 e.target.style.transform = 'translateY(0)';
-                                                e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
+                                                e.target.style.boxShadow = '0 2px 8px rgba(220, 53, 69, 0.3)';
                                             }
                                         }}
                                     >
-                                        {interestLoading ? (
+                                        {deleteLoading ? (
                                             <>
                                                 <div style={{
                                                     width: '1rem',
@@ -487,47 +571,29 @@ function ItemDetail() {
                                                     borderRadius: '50%',
                                                     animation: 'spin 0.8s linear infinite'
                                                 }}></div>
-                                                <span>Processing...</span>
+                                                <span>Deleting...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <span>💡</span>
-                                                <span>I'm Interested</span>
+                                                <span>🗑️</span>
+                                                <span>Delete Item</span>
                                             </>
                                         )}
                                     </button>
-                                ) : (
-                                    <>
+                                </div>
+                            ) : (
+                                /* Interest Buttons for non-owners */
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    {!isInterested ? (
                                         <button
-                                            disabled
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem',
-                                                padding: '0.75rem 1.5rem',
-                                                backgroundColor: '#28a745',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                cursor: 'not-allowed',
-                                                fontWeight: '600',
-                                                fontSize: '1rem',
-                                                opacity: 0.9,
-                                                boxShadow: '0 2px 8px rgba(40, 167, 69, 0.3)'
-                                            }}
-                                        >
-                                            <span>✓</span>
-                                            <span>Already Interested</span>
-                                        </button>
-                                        <button
-                                            onClick={handleRemoveInterestClick}
+                                            onClick={handleInterestClick}
                                             disabled={interestLoading}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '0.5rem',
                                                 padding: '0.75rem 1.5rem',
-                                                backgroundColor: '#dc3545',
+                                                backgroundColor: '#7c6fd6',
                                                 color: 'white',
                                                 border: 'none',
                                                 borderRadius: '8px',
@@ -536,18 +602,18 @@ function ItemDetail() {
                                                 fontSize: '1rem',
                                                 transition: 'all 0.3s',
                                                 opacity: interestLoading ? 0.7 : 1,
-                                                boxShadow: '0 2px 8px rgba(220, 53, 69, 0.3)'
+                                                boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
                                             }}
                                             onMouseEnter={(e) => {
                                                 if (!interestLoading) {
                                                     e.target.style.transform = 'translateY(-2px)';
-                                                    e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.4)';
+                                                    e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
                                                 }
                                             }}
                                             onMouseLeave={(e) => {
                                                 if (!interestLoading) {
                                                     e.target.style.transform = 'translateY(0)';
-                                                    e.target.style.boxShadow = '0 2px 8px rgba(220, 53, 69, 0.3)';
+                                                    e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
                                                 }
                                             }}
                                         >
@@ -565,14 +631,89 @@ function ItemDetail() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span>✕</span>
-                                                    <span>Remove Interest</span>
+                                                    <span>💡</span>
+                                                    <span>I'm Interested</span>
                                                 </>
                                             )}
                                         </button>
-                                    </>
-                                )}
-                            </div>
+                                    ) : (
+                                        <>
+                                            <button
+                                                disabled
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    padding: '0.75rem 1.5rem',
+                                                    backgroundColor: '#28a745',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    cursor: 'not-allowed',
+                                                    fontWeight: '600',
+                                                    fontSize: '1rem',
+                                                    opacity: 0.9,
+                                                    boxShadow: '0 2px 8px rgba(40, 167, 69, 0.3)'
+                                                }}
+                                            >
+                                                <span>✓</span>
+                                                <span>Already Interested</span>
+                                            </button>
+                                            <button
+                                                onClick={handleRemoveInterestClick}
+                                                disabled={interestLoading}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    padding: '0.75rem 1.5rem',
+                                                    backgroundColor: '#dc3545',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    cursor: interestLoading ? 'not-allowed' : 'pointer',
+                                                    fontWeight: '600',
+                                                    fontSize: '1rem',
+                                                    transition: 'all 0.3s',
+                                                    opacity: interestLoading ? 0.7 : 1,
+                                                    boxShadow: '0 2px 8px rgba(220, 53, 69, 0.3)'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (!interestLoading) {
+                                                        e.target.style.transform = 'translateY(-2px)';
+                                                        e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.4)';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!interestLoading) {
+                                                        e.target.style.transform = 'translateY(0)';
+                                                        e.target.style.boxShadow = '0 2px 8px rgba(220, 53, 69, 0.3)';
+                                                    }
+                                                }}
+                                            >
+                                                {interestLoading ? (
+                                                    <>
+                                                        <div style={{
+                                                            width: '1rem',
+                                                            height: '1rem',
+                                                            border: '2px solid #ffffff',
+                                                            borderTop: '2px solid transparent',
+                                                            borderRadius: '50%',
+                                                            animation: 'spin 0.8s linear infinite'
+                                                        }}></div>
+                                                        <span>Processing...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>✕</span>
+                                                        <span>Remove Interest</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )
                         )}
                     </div>
 

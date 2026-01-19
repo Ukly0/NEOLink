@@ -213,3 +213,14 @@ input[type="radio"]:disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+::selection {
+  background-color: #7c6fd6;
+  color: #ffffff;            
+}
+
+
+::-moz-selection {
+  background-color: #7c6fd6;
+  color: #ffffff;
+}

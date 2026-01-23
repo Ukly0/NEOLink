@@ -134,6 +134,7 @@ module.exports = {
                         topic_featured_link_allowed: true,
                         permissions: {
                             [group_name_sanitazed]: 1,
+                            'everyone': 3,
                             'staff': 1,
                             'admins': 1,
                         }

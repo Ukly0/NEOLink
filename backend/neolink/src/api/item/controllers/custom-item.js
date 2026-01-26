@@ -134,6 +134,7 @@ module.exports = {
                         topic_featured_link_allowed: true,
                         permissions: {
                             [group_name_sanitazed]: 1,
+                            'everyone': 3,
                             'staff': 1,
                             'admins': 1,
                         }
@@ -155,9 +156,21 @@ module.exports = {
                         description,
                         item_category,
                         expiration,
-                        erc_area,
-                        erc_panel,
-                        erc_keyword: erc_keyword,
+                        ...(erc_area && erc_area.trim() !== '' && { erc_area }),
+                        ...(erc_panel && {
+                            erc_panel: {
+                                connect: [
+                                    { documentId: erc_panel }
+                                ]
+                            }
+                        }),
+                        ...(erc_keyword && {
+                            erc_keyword: {
+                                connect: [
+                                    { documentId: erc_keyword }
+                                ]
+                            }
+                        }),
                         start_date,
                         learning_outcomes,
                         multimedial_material_provided: multimediarial_material_provided,

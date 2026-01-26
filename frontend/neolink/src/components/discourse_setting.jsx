@@ -216,14 +216,14 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                         fontSize: '1.75rem',
                         fontWeight: '600'
                     }}>
-                       Virtual Cafè Group & Category Settings
+                       Virtual Cafè Group Settings
                     </h2>
                     <p style={{
                         marginBottom: '2rem',
                         color: '#6c757d',
                         fontSize: '0.95rem'
                     }}>
-                        Interaction with users who show interest in your item will take place on the <a href="https://virtualcafe.neolaiacampus.eu/" target="_blank" rel="noopener noreferrer">Virtual Café</a>. You can customize certain aspects, such as the name of the group that will be created and the category (optional).
+                        Interaction with users who show interest in your item will take place on the <a href="https://virtualcafe.neolaiacampus.eu/" target="_blank" rel="noopener noreferrer">Virtual Café</a>. You can customize certain aspects, such as the name of the private group that will be created and if you want to make it public on the Virtual Cafè.
                     </p>
 
                     <form onSubmit={handleSubmit}>
@@ -255,13 +255,13 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                     justifyContent: 'center',
                                     fontSize: '0.75rem'
                                 }}>👥</span>
-                                Group Information
+                                Private Group Information
                             </h3>
 
                             {/* Group Name */}
                             <div style={{ marginBottom: '1.25rem' }}>
                                 <label style={labelStyle}>
-                                    Group Name <span style={{ color: '#dc3545' }}>*</span>
+                                    Private Group Name <span style={{ color: '#dc3545' }}>*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -304,7 +304,7 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                             {/* Group Description */}
                             <div>
                                 <label style={labelStyle}>
-                                    Group Description
+                                    Private Group Description
                                 </label>
                                 <textarea
                                     name="group_description"
@@ -362,10 +362,10 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                             fontSize: '1.1rem',
                                             fontWeight: '600'
                                         }}>
-                                            Create a New Category
+                                            Make the group public
                                         </h3>
                                         <small style={{ color: '#6c757d', fontSize: '0.85rem' }}>
-                                            Optional: Organize groups under a category
+                                            Optional: Make the group public on the Virtual Café, every users in the platform will be able to see the conversation exchanged in the group.
                                         </small>
                                     </div>
                                 </div>
@@ -409,17 +409,18 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                         fontSize: '0.9rem',
                                         lineHeight: '1.5'
                                     }}>
-                                        <strong>What is the purpose of having a category?</strong><br />
-                                        Categories, are designed for structured, topic-oriented discussions that are, searchable, and preserved over time. Content posted within categories contributes to a durable knowledge base, supports moderation policies, and remains easily discoverable by the wider community. 
-                                        Once you have created a category, you can then create different topics for the same item based on the different themes being discussed for the item you are about to offer on the platform.
+                                        <strong>What is the purpose of having a public group?</strong><br />
+                                        Makeing the group public allows anyone on the Virtual Cafè platform to view the discussions happening within the group, but can't post messages unless they show interest in your event on the NEOLink platform.
+                                        In addition, public groups are designed for structured, topic-oriented discussions that are searchable and preserved over time. Content posted within public groups contributes to a durable knowledge base, supports moderation policies, and remains easily discoverable by the wider community. 
+                                        Once you have created a public group, you can then create different topics for the same item based on the different themes being discussed for the item you are about to offer on the platform.
                                         For example, for your item, you might have one topic for "General Discussion", "Feedback and Suggestions", and "Technical Support". Each topic can focus on a specific aspect of the item, allowing users to engage in more targeted conversations.
 
-                                        <br /><strong>When not create a category?</strong><br />
-                                        It is advisable not to create a category if you are not interested in the benefits described above and your primary goal is simply to get in touch with people interested in your item. 
-                                        In such cases, using the group chat feature may be sufficient, as it supports direct and informal conversations and is comparable to a WhatsApp group. 
+                                        <br /><strong>When mantain the group private?</strong><br />
+                                        It is advisable not to create a public group if you are not interested in the benefits described above and your primary goal is simply to get in touch with people interested in your event. 
+                                        In such cases, using the private group feature may be sufficient, as it supports direct and informal conversations and is comparable to a WhatsApp group. 
                                         However, please note that group chat messages are not persistent: users who join the group at a later time will not be able to view messages exchanged before they joined.
 
-                                        <br /><em>If you're unsure, you can skip this and add a category later in the Virtual Cafè platform</em>
+                                        <br /><em>If you're unsure, you can skip this and make the group public later on the Virtual Cafè platform</em>
                                     </p>
                                 </div>
                             )}
@@ -450,36 +451,36 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                             fontSize: '0.9rem',
                                             lineHeight: '1.5'
                                         }}>
-                                            <strong>✓ Creating a new category</strong><br />
-                                            The category will be created together with your group. All the settings below will be applied to the new category.
+                                            <strong>✓ Creating a public group</strong><br />
+                                            The group created will be public. All the settings below will be applied to the new public group.
                                         </p>
                                     </div>
 
                                     {/* Category Name */}
                                     <div style={{ marginBottom: '1.25rem' }}>
                                         <label style={labelStyle}>
-                                            Category Name <span style={{ color: '#dc3545' }}>*</span>
+                                            Public Group Name <span style={{ color: '#dc3545' }}>*</span>
                                         </label>
                                         <input
                                             type="text"
                                             name="category_name"
                                             value={formData.category_name}
                                             onChange={handleInputChange}
-                                            placeholder="Enter category name"
+                                            placeholder="Enter public group name"
                                             required={createCategory}
                                             style={inputStyle}
                                             onFocus={(e) => e.target.style.borderColor = '#7c6fd6'}
                                             onBlur={(e) => e.target.style.borderColor = '#dee2e6'}
                                         />
                                         <small style={{ color: '#6c757d', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                                            Choose a descriptive name for the category (e.g., "2024 Virtual Events")
+                                            Choose a descriptive name for the public group (e.g., "2026 Virtual Events")
                                         </small>
                                     </div>
 
                                     {/* Category Color */}
                                     <div style={{ marginBottom: '1.25rem' }}>
                                         <label style={labelStyle}>
-                                            Category Color <span style={{ color: '#dc3545' }}>*</span>
+                                            Public Group Color <span style={{ color: '#dc3545' }}>*</span>
                                         </label>
                                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -534,7 +535,7 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                             </div>
                                         </div>
                                         <small style={{ color: '#6c757d', fontSize: '0.8rem', marginTop: '0.5rem', display: 'block' }}>
-                                            This color will be used to visually identify the category in the interface
+                                            This color will be used to visually identify the public group in the interface
                                         </small>
                                     </div>
 
@@ -558,7 +559,7 @@ function CreateItemFormStep2({ token, initialData, onBack, onSubmit }) {
                                             }}></div>
                                             <div>
                                                 <div style={{ fontWeight: '600', color: '#213547' }}>
-                                                    {formData.category_name || 'Category Name'}
+                                                    {formData.category_name || 'Public Group Name'}
                                                 </div>
                                             </div>
                                         </div>

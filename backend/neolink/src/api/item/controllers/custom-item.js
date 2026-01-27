@@ -319,7 +319,7 @@ module.exports = {
                 }
             } else {
                     try{
-                        const response = await axios.get(`${process.env.DISCOURSE_URL}/admin/users/${user_entry.virtual_cafe_id}`, {
+                        const response = await axios.get(`${process.env.DISCOURSE_URL}/admin/users/${user_entry.virtual_cafe_id}.json`, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
                                 'Api-Username': 'system'

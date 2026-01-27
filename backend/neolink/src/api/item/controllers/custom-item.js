@@ -102,6 +102,7 @@ module.exports = {
                     default_notification_level: 3,
                     primary_group: false,
                     skip_validations: true,
+                    messageable_level: 3
                 };
                 const response = await axios.post(`${process.env.DISCOURSE_URL}/admin/groups.json`, group_payload, {
                     headers: {

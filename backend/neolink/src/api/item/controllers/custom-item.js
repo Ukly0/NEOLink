@@ -235,20 +235,35 @@ module.exports = {
 
                 if (createdEntry){
                     let topic_payload;
+                    let update_group_payload;
+                    
                     if (createdCategoryId){
                         topic_payload = {
                             title: `"${name}" has been inserted in the NEOLink platform!`,
                             raw: `${name} has been created and is now available on the NEOLink platform.\nSee the conversation about the event at the following link: ${process.env.FRONT_END_URL}/c/${discourse_category_name}!`,
                             category: 101, 
                         };
-                    }
                     
-                    await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
-                        headers: {
-                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
-                            'Api-Username': 'system'
+                        await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+
+                        update_group_payload = {
+                            group: {
+                                watching_category_ids: [createdCategoryId],
+                            },
+                            update_existing_users: true
                         }
-                    });
+                        const group_update_response = await axios.put(`${process.env.DISCOURSE_URL}/groups/${createdGroupId}.json`, update_group_payload, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+                    }
                 }
                 
                 return ctx.response.created(createdEntry);

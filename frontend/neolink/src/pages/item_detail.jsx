@@ -531,7 +531,7 @@ function ItemDetail() {
                 )}
 
                 {/* Virtual Café Link Banner for Interested Users */}
-                {isInterested && virtualCafeLink && (
+                {((isInterested && virtualCafeLink) || (userData?.user_id === item.seller?.documentId && virtualCafeLink)) && (
                     <div style={{
                         animation: 'slideDown 0.3s ease-out',
                         marginBottom: '1rem',

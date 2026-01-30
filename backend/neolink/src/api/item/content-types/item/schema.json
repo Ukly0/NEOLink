@@ -127,6 +127,15 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::isced-detailed-field.isced-detailed-field"
+    },
+    "category_name": {
+      "type": "string"
+    },
+    "group_name": {
+      "type": "string"
+    },
+    "first_topic_id": {
+      "type": "integer"
     }
   }
 }

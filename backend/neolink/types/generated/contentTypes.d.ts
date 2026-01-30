@@ -704,6 +704,7 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    category_name: Schema.Attribute.String;
     coverId: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -732,6 +733,8 @@ export interface ApiItemItem extends Struct.CollectionTypeSchema {
       'oneToOne',
       'api::first-level-structure.first-level-structure'
     >;
+    first_topic_id: Schema.Attribute.Integer;
+    group_name: Schema.Attribute.String;
     interested_users: Schema.Attribute.Relation<
       'manyToMany',
       'api::seller.seller'

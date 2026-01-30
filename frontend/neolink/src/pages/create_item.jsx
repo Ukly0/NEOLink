@@ -129,7 +129,9 @@ function CreateItem() {
             });
             
             console.log("Final form data:", finalData);
-            
+            console.log("Submission response:", response.data);
+            //navigate('/my-items', { state: { token } });
+            navigate(`/items/${response.data.documentId}`, { state: { token } });
             // Return both values as an object
             return { finalData, response };
             

@@ -1,8 +1,9 @@
 const axios = require('axios');
 const seller = require('../../seller/controllers/seller');
 const crypto = require('crypto');
+const { pop } = require('../../../../config/middlewares');
 module.exports = {
-   async create(ctx, next){
+    async create(ctx, next){
         let createdEntry = null;
         let createdGroupId = null;
         let createdCategoryId = null;
@@ -35,7 +36,7 @@ module.exports = {
                 cover
             } = ctx.request.body;
             
-            const {group_name, group_display_name, group_description, category_name, category_color} = ctx.request.body;
+            const {group_name, group_display_name, group_description} = ctx.request.body;
             const email = ctx.request.body.data.email;
             const user_id = ctx.request.body.data.user_id;
             
@@ -104,7 +105,7 @@ module.exports = {
                     default_notification_level: 3,
                     primary_group: false,
                     skip_validations: true,
-                    messageable_level: 3
+                    //messageable_level: 3
                 };
                 
                 const groupResponse = await axios.post(`${process.env.DISCOURSE_URL}/admin/groups.json`, group_payload, {
@@ -116,33 +117,20 @@ module.exports = {
                 console.log("Group creation response:", groupResponse);
                 createdGroupId = groupResponse.data.basic_group.id;
                 
-                // Step 3: Add user to group
-                await axios.put(
-                    `${process.env.DISCOURSE_URL}/groups/${createdGroupId}/members.json`,
-                    { usernames: virtual_cafe_username },
-                    {
-                        headers: {
-                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
-                            'Api-Username': 'system'
-                        }
-                    }
-                );
-                
-                // Step 4: Create Discourse category (if requested)
+                // Step 3: Create Discourse category 
                 let discourse_category_name = null;
-                if (category_name && category_name.trim() !== '') {
-                    const category_name_sanitized = category_name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').slice(0, 50);
+                if (group_name && group_name.trim() !== '') {
                     const category_payload = {
-                        name: `[NEOLink] ${category_name_sanitized}`,
-                        color: (category_color || "0088CC").replace('#', ''),
+                        name: `[NEOLink] ${group_name_sanitized}`,
+                        color: ("0088CC").replace('#', ''),
                         text_color: "FFFFFF",
-                        slug: category_name_sanitized,
+                        slug: group_name_sanitized,
                         parent_category_id: null,
                         allow_badges: true,
                         topic_featured_link_allowed: true,
                         permissions: {
                             [group_name_sanitized]: 1,
-                            'everyone': 3,
+                            //'everyone': 3,
                             'staff': 1,
                             'admins': 1,
                         }
@@ -159,28 +147,35 @@ module.exports = {
                     console.log(categoryResponse.data);
                 }
                 
-                // Step 5: Create announcement topic
-                let topic_payload;
-                if (createdCategoryId){
-                    topic_payload = {
-                        title: `"${name}" has been inserted in the NEOLink platform!`,
-                        raw: `${name} has been created and is now available on the NEOLink platform.\nSee the conversation about the event at the following link: ${process.env.DISCOURSE_URL}/c/${discourse_category_name}!`,
-                        category: 101, 
+                // Step 4: Set watching categories BEFORE adding user to group
+                if (createdCategoryId) {
+                    const update_group_payload = {
+                        group: {
+                            watching_category_ids: [createdCategoryId],
+                        }
                     };
-                } else {
-                    topic_payload = {
-                        title: `"${name}" has been inserted in the NEOLink platform!`,
-                        raw: `${name} has been created and is now available on the NEOLink platform.\nShow interest to the event on NEOLink platform to join the conversation!`,
-                        category: 101, 
-                    };
+
+                    await axios.put(`${process.env.DISCOURSE_URL}/groups/${createdGroupId}.json`, update_group_payload, {
+                        headers: {
+                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                            'Api-Username': 'system'
+                        }
+                    });
+                    console.log("Group watching categories set successfully");
                 }
                 
-                await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
-                    headers: {
-                        'Api-Key': process.env.DISCOURSE_API_TOKEN,
-                        'Api-Username': 'system'
+                // Step 5: Add user to group (AFTER setting category notifications)
+                await axios.put(
+                    `${process.env.DISCOURSE_URL}/groups/${createdGroupId}/members.json`,
+                    { usernames: virtual_cafe_username },
+                    {
+                        headers: {
+                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                            'Api-Username': 'system'
+                        }
                     }
-                });
+                );
+                console.log("User added to group successfully");
                 
                 // Step 6: Create Strapi entry (only after Discourse operations succeed)
                 createdEntry = await strapi.entityService.create("api::item.item", {
@@ -252,57 +247,81 @@ module.exports = {
                         coverId: cover ? parseInt(cover) : null,
                         discourse_group_id: createdGroupId ? parseInt(createdGroupId) : null,
                         discourse_category_id: createdCategoryId ? parseInt(createdCategoryId) : null,
-                    }
+                        category_name: discourse_category_name,
+                        group_name: group_name_sanitized,
+                    },
+                    populate: ['item_category']
                 });
-                
-                return ctx.response.created(createdEntry);
-                
-            } catch (discourseError) {
-                console.error("Error in Discourse operations:", discourseError.response?.data || discourseError.message);
-                
-                // Rollback: Delete created resources in reverse order
-                try {
-                    // Delete Strapi entry if created
-                    if (createdEntry) {
-                        console.log("Rolling back: Deleting Strapi entry", createdEntry.id);
-                        await strapi.entityService.delete("api::item.item", createdEntry.id);
-                    }
+
+                if (createdEntry){
+                    console.log("Created Strapi entry:", createdEntry);
+                    let topic_payload;
                     
-                    // Delete Discourse category if created
-                    if (createdCategoryId) {
-                        console.log("Rolling back: Deleting Discourse category", createdCategoryId);
-                        await axios.delete(`${process.env.DISCOURSE_URL}/categories/${createdCategoryId}.json`, {
+                    if (createdCategoryId){
+                        topic_payload = {
+                            title: `"${name}" has been successfully published on NEOLink`,
+                            raw: `We are pleased to announce that **${name}** has been successfully created and is now available on the **NEOLink platform**!
+
+**Description**  
+${description}
+
+**Event Type**  
+${createdEntry.item_category?.name || 'N/A'}
+
+**Offered by**  
+${offered_by}
+
+Show your interest to the event on NEOLink at the following link to join the conversation:  
+${process.env.FRONT_END_URL}items/${createdEntry.documentId || 'N/A'}`,
+                            category: 101, 
+                        };
+                    
+                        await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
                                 'Api-Username': 'system'
                             }
                         });
-                    }
-                    
-                    // Delete Discourse group if created
-                    if (createdGroupId) {
-                        console.log("Rolling back: Deleting Discourse group", createdGroupId);
-                        await axios.delete(`${process.env.DISCOURSE_URL}/admin/groups/${createdGroupId}.json`, {
+
+                        // Create a topic to log users when join the group
+                        topic_payload = {
+                            title: `Group Activity - ${name}`,
+                            raw: `${offered_by} have just created the event **${name}** in the NEOLink platform!
+**Description**  
+${description}
+
+**Event Type**  
+${createdEntry.item_category?.name || 'N/A'}
+
+All details about the event are available at the following link:  
+${process.env.FRONT_END_URL}items/${createdEntry.documentId || 'N/A'}`,
+                            category: createdCategoryId,
+                            auto_track: true,
+                        }
+                        const topic_response = await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
                                 'Api-Username': 'system'
                             }
                         });
+
+                        // Update Strapi entry with the topic ID
+                        await strapi.entityService.update("api::item.item", createdEntry.id, {
+                            data: {
+                                first_topic_id: topic_response.data.topic_id
+                            }
+                        });
                     }
-                    
-                    console.log("Rollback completed successfully");
-                } catch (rollbackError) {
-                    console.error("Error during rollback:", rollbackError.response?.data || rollbackError.message);
-                    // Log the rollback error but don't throw - we want to return the original error
                 }
-                
-                // Return error to client
-                return ctx.badRequest(`Failed to create item: ${discourseError.response?.data?.errors?.[0] || discourseError.message}`);
+                return ctx.response.created(createdEntry);
+            } catch (discourseError) {
+                console.error("Discourse operation failed:", discourseError.response?.data || discourseError.message);
+                throw discourseError;
             }
-            
-        } catch (error){
-            console.error("Unexpected error:", error);
-            return ctx.internalServerError(error.message);
+        } catch (error) {
+            console.error("Error in create function:", error);
+            // Add your error handling here
+            throw error;
         }
     },
     async interest(ctx, next){
@@ -311,7 +330,7 @@ module.exports = {
         const {item_id} = ctx.request.body;
 
         const entry = await strapi.db.query("api::item.item").findOne({
-            select: ['discourse_group_id'],
+            select: ['discourse_group_id','first_topic_id'],
             where: { documentId: item_id },
             populate: {
                 interested_users: {
@@ -332,7 +351,7 @@ module.exports = {
             }
 
             const user_entry = await strapi.db.query("api::seller.seller").findOne({
-                select: ['virtual_cafe_id'],
+                select: ['virtual_cafe_id','full_name'],
                 where: { documentId: user_id },
             });
             
@@ -437,6 +456,20 @@ module.exports = {
                             documentId: item_id
                         });
                         console.log('User added to interested_users relation');
+
+                         // Create a post in the topic to welcome new members
+                         console.log("Entry for post payload:", entry);
+                        const post_payload = {
+                            raw: `${user_entry.full_name} have just showed interest in the event in the NEOLink platform, and is joined the group!`,
+                            topic_id: entry.first_topic_id,
+                        }
+                        await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, post_payload, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+                        console.log(post_payload)
                     } catch (error) {
                         console.log("Error adding user to interested_users relation: " + error);
                         return ctx.internalServerError('Error adding user to interested_users relation');
@@ -556,44 +589,74 @@ module.exports = {
     },
     async removeItem(ctx, next){
         const { item_id } = ctx.request.body;
-        try{
+        try {
             const entry = await strapi.db.query("api::item.item").findOne({
                 select: ['discourse_group_id', 'discourse_category_id'],
                 where: { documentId: item_id },
             });
-            if (entry){
-                if (entry.discourse_group_id){
-                    try{
+            
+            if (entry) {
+                // Delete Discourse group
+                if (entry.discourse_group_id) {
+                    try {
                         await axios.delete(`${process.env.DISCOURSE_URL}/admin/groups/${entry.discourse_group_id}.json`, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
                                 'Api-Username': 'system'
                             }
                         });
-                    } catch (error){
+                    } catch (error) {
                         console.log("Error deleting Discourse group: " + error);
                     }
                 }
-                if (entry.discourse_category_id){
-                    try{
+                
+                // Delete Discourse category (after deleting all topics)
+                if (entry.discourse_category_id) {
+                    try {
+                        // First, get all topics in the category
+                        const topicsResponse = await axios.get(`${process.env.DISCOURSE_URL}/c/${entry.discourse_category_id}.json`, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+                        
+                        // Delete each topic
+                        const topics = topicsResponse.data.topic_list.topics;
+                        for (const topic of topics) {
+                            try {
+                                await axios.delete(`${process.env.DISCOURSE_URL}/t/${topic.id}.json`, {
+                                    headers: {
+                                        'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                        'Api-Username': 'system'
+                                    }
+                                });
+                            } catch (topicError) {
+                                console.log(`Error deleting topic ${topic.id}: ${topicError}`);
+                            }
+                        }
+                        
+                        // Now delete the empty category
                         await axios.delete(`${process.env.DISCOURSE_URL}/categories/${entry.discourse_category_id}.json`, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
                                 'Api-Username': 'system'
                             }
                         });
-                    } catch (error){
+                    } catch (error) {
                         console.log("Error deleting Discourse category: " + error);
                     }
                 }
+                // Delete the Strapi item
                 await strapi.documents("api::item.item").delete({
                     documentId: item_id
                 });
-                return ctx.send({message: 'Item and associated Discourse group/category deleted successfully'});
+                
+                return ctx.send({ message: 'Item and associated Discourse group/category deleted successfully' });
             } else {
                 return ctx.notFound('Item not found');
             }
-        } catch (error){
+        } catch (error) {
             console.log(error);
             return ctx.internalServerError(error.message);
         }

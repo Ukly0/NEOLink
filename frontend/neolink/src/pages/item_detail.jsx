@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { base_url } from "../api";
+import { base_url, discourse_url } from "../api";
 import { jwtDecode } from "jwt-decode";
 import Navbar from "../components/navbar.jsx";
+import QRCode from "qrcode";
 
 const logo_neolaia = "/logoNEOLAiA.png";
 const eu_logo = "/eu_logo.png";
@@ -26,6 +27,12 @@ function ItemDetail() {
     const [userData, setUserData] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    
+    // New state for share features
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [qrCodeUrl, setQrCodeUrl] = useState(null);
+    const [copySuccess, setCopySuccess] = useState(false);
+    const [virtualCafeLink, setVirtualCafeLink] = useState(null);
 
     // Get base URL without /api for uploads
     const getUploadBaseUrl = () => {
@@ -33,6 +40,66 @@ function ItemDetail() {
     };
 
     const token = location.state?.token || localStorage.getItem("token");
+
+    // Get current page URL
+    const getCurrentPageUrl = () => {
+        return window.location.href;
+    };
+
+    // Generate QR Code
+    const generateQRCode = async (url) => {
+        try {
+            const qrDataUrl = await QRCode.toDataURL(url, {
+                width: 300,
+                margin: 2,
+                color: {
+                    dark: '#213547',
+                    light: '#FFFFFF'
+                }
+            });
+            setQrCodeUrl(qrDataUrl);
+        } catch (err) {
+            console.error('Error generating QR code:', err);
+        }
+    };
+
+    // Copy link to clipboard
+    const handleCopyLink = async () => {
+        const url = getCurrentPageUrl();
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        }
+    };
+
+    // Open share modal
+    const handleShareClick = () => {
+        const url = getCurrentPageUrl();
+        generateQRCode(url);
+        setShowShareModal(true);
+    };
+
+    // Download QR Code
+    const handleDownloadQR = () => {
+        if (qrCodeUrl) {
+            const link = document.createElement('a');
+            link.download = `${item.name.replace(/\s+/g, '_')}_QRCode.png`;
+            link.href = qrCodeUrl;
+            link.click();
+        }
+    };
 
     useEffect(() => {
         if (token) {
@@ -43,13 +110,17 @@ function ItemDetail() {
                 console.error("Error decoding token:", err);
                 setError("Invalid token");
                 localStorage.removeItem("token");
-                setTimeout(() => navigate("/login"), 2000);
+                setTimeout(() => navigate("/login", { 
+                    state: { from: `/items/${documentId}` }
+                }), 2000);
             }
         } else {
             setError("No token provided");
-            setTimeout(() => navigate("/login"), 2000);
+            setTimeout(() => navigate("/login", { 
+                state: { from: `/items/${documentId}` }
+            }), 2000);
         }
-    }, [token, navigate]);
+    }, [token, navigate, documentId]);
 
     useEffect(() => {
         if (userData) {
@@ -99,7 +170,7 @@ function ItemDetail() {
                 secondLevelStructure: mergedData.secondLevelStructure
             });
             setCoverImage(mergedData.coverImage);
-
+            setVirtualCafeLink(`${discourse_url}/c/${itemData.category_name}` || null);
             setLoading(false);
         } catch (err) {
             console.error("Error fetching item details:", err);
@@ -132,7 +203,10 @@ function ItemDetail() {
             setIsInterested(true);
             console.log("Interest recorded successfully:", response.data);
             const message = response.data.message || 'You have been added to the Virtual Cafè discussion group!';
-            const groupLink = response.data.link || response.data.groupLink;
+            const groupLink = `${discourse_url}/c/${item.category_name}` || null;
+            console.log("Virtual Café group link:", groupLink); 
+            // Store the Virtual Café link
+            setVirtualCafeLink(groupLink);
             
             setInterestMessage({
                 type: 'success',
@@ -187,6 +261,7 @@ function ItemDetail() {
             
             if (response.status === 200) {
                 setIsInterested(false);
+                setVirtualCafeLink(null); // Clear the Virtual Café link
                 setInterestMessage({
                     type: 'success',
                     text: response.data.message || 'You have been removed from the Virtual Cafè discussion group.'
@@ -451,53 +526,129 @@ function ItemDetail() {
                         </span>
                         <div style={{ flex: 1 }}>
                             {interestMessage.text}
-                            {interestMessage.link && (
-                                <a 
-                                    href={interestMessage.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        display: 'inline-block',
-                                        marginLeft: '0.5rem',
-                                        color: '#0066cc',
-                                        textDecoration: 'underline',
-                                        fontWeight: '600'
-                                    }}
-                                >
-                                    Visit Group →
-                                </a>
-                            )}
                         </div>
                     </div>
                 )}
-                {/* Back Button */}
-                <button
-                    onClick={() => navigate('/items')}
-                    style={{
+
+                {/* Virtual Café Link Banner for Interested Users */}
+                {((isInterested && virtualCafeLink) || (userData?.user_id === item.seller?.documentId && virtualCafeLink)) && (
+                    <div style={{
+                        animation: 'slideDown 0.3s ease-out',
+                        marginBottom: '1rem',
+                        padding: '1rem 1.5rem',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.5rem 1rem',
-                        backgroundColor: 'transparent',
-                        color: '#7c6fd6',
-                        border: '2px solid #7c6fd6',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '600',
-                        marginBottom: '2rem',
-                        transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#7c6fd6';
-                        e.target.style.color = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'transparent';
-                        e.target.style.color = '#7c6fd6';
-                    }}
-                >
-                    ← Back to Items
-                </button>
+                        justifyContent: 'space-between',
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <span style={{ fontSize: '1.5rem' }}>☕</span>
+                            <div>
+                                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                                    Virtual Cafè Discussion
+                                </div>
+                                <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
+                                    Join the conversation about this item
+                                </div>
+                            </div>
+                        </div>
+                        <a 
+                            href={virtualCafeLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                color: 'white',
+                                border: '2px solid white',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                fontWeight: '600',
+                                transition: 'all 0.3s',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = 'white';
+                                e.target.style.color = '#667eea';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                                e.target.style.color = 'white';
+                            }}
+                        >
+                            Open Discussion →
+                        </a>
+                    </div>
+                )}
+
+                {/* Back Button and Share Button Row */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '2rem',
+                    gap: '1rem',
+                    flexWrap: 'wrap'
+                }}>
+                    <button
+                        onClick={() => navigate('/items')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: 'transparent',
+                            color: '#7c6fd6',
+                            border: '2px solid #7c6fd6',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#7c6fd6';
+                            e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#7c6fd6';
+                        }}
+                    >
+                        ← Back to Items
+                    </button>
+
+                    <button
+                        onClick={handleShareClick}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: '#7c6fd6',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            transition: 'all 0.3s',
+                            boxShadow: '0 2px 8px rgba(124, 111, 214, 0.3)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 8px rgba(124, 111, 214, 0.3)';
+                        }}
+                    >
+                        <span>🔗</span>
+                        <span>Share</span>
+                    </button>
+                </div>
 
                 {/* Cover Image */}
                 <div style={{
@@ -1166,6 +1317,189 @@ function ItemDetail() {
                     </div>
                 </div>
             </div>
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    animation: 'fadeIn 0.2s ease-out',
+                    padding: '1rem'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '16px',
+                        padding: '2rem',
+                        maxWidth: '500px',
+                        width: '100%',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        animation: 'slideUp 0.3s ease-out'
+                    }}>
+                        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                            <div style={{ 
+                                fontSize: '3rem', 
+                                marginBottom: '1rem'
+                            }}>
+                                🔗
+                            </div>
+                            <h3 style={{ 
+                                color: '#213547', 
+                                margin: '0 0 0.5rem 0',
+                                fontSize: '1.5rem',
+                                fontWeight: '600'
+                            }}>
+                                Share this Item
+                            </h3>
+                            <p style={{ 
+                                color: '#6c757d', 
+                                margin: 0,
+                                fontSize: '0.95rem'
+                            }}>
+                                Copy the link or scan the QR code
+                            </p>
+                        </div>
+
+                        {/* QR Code */}
+                        {qrCodeUrl && (
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                marginBottom: '1.5rem'
+                            }}>
+                                <img 
+                                    src={qrCodeUrl} 
+                                    alt="QR Code" 
+                                    style={{
+                                        width: '250px',
+                                        height: '250px',
+                                        border: '2px solid #e9ecef',
+                                        borderRadius: '12px',
+                                        padding: '1rem'
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {/* URL Display */}
+                        <div style={{
+                            marginBottom: '1.5rem',
+                            padding: '1rem',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '8px',
+                            border: '1px solid #dee2e6',
+                            wordBreak: 'break-all',
+                            fontSize: '0.875rem',
+                            color: '#495057'
+                        }}>
+                            {getCurrentPageUrl()}
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            marginBottom: '1rem'
+                        }}>
+                            <button
+                                onClick={handleCopyLink}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem 1.5rem',
+                                    backgroundColor: copySuccess ? '#28a745' : '#7c6fd6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!copySuccess) {
+                                        e.target.style.transform = 'translateY(-2px)';
+                                        e.target.style.boxShadow = '0 4px 12px rgba(124, 111, 214, 0.4)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            >
+                                <span>{copySuccess ? '✓' : '📋'}</span>
+                                <span>{copySuccess ? 'Copied!' : 'Copy Link'}</span>
+                            </button>
+
+                            <button
+                                onClick={handleDownloadQR}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem 1.5rem',
+                                    backgroundColor: '#6c757d',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                    e.target.style.boxShadow = '0 4px 12px rgba(108, 117, 125, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
+                            >
+                                <span>⬇️</span>
+                                <span>Download QR</span>
+                            </button>
+                        </div>
+
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setShowShareModal(false)}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                backgroundColor: '#f8f9fa',
+                                color: '#495057',
+                                border: '1px solid #dee2e6',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#e9ecef';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#f8f9fa';
+                            }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (

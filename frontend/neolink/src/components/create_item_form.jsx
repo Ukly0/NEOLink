@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { base_url } from "../api";
 import { shouldShowField, getCategoryFieldDescription } from "../category_field_config";
 import Navbar from "./navbar";
 import { getCategoryIcon } from "../utils";
+import { LANGUAGES } from "../config/languages";
 
 const logo_neolink = `${import.meta.env.BASE_URL}logo.png`;
 const eu_logo = `${import.meta.env.BASE_URL}eu_logo.png`;
@@ -57,6 +58,16 @@ function CreateItemForm({ token, initialData, selectedCategory, onNext, onBack }
     const [error, setError] = useState(null);
     const [dateErrors, setDateErrors] = useState({});
 
+    // Language dropdown states
+    const [languageSearch, setLanguageSearch] = useState('');
+    const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+    const languageDropdownRef = useRef(null);
+
+    // Filter languages based on search
+    const filteredLanguages = LANGUAGES.filter(lang =>
+        lang.name.toLowerCase().includes(languageSearch.toLowerCase())
+    );
+
     // Item status options
     const itemStatusOptions = [
         { value: 'active', label: 'Active' },
@@ -99,6 +110,24 @@ function CreateItemForm({ token, initialData, selectedCategory, onNext, onBack }
         
         return errors;
     };
+
+    // Click outside handler for language dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
+                setIsLanguageDropdownOpen(false);
+                setLanguageSearch('');
+            }
+        };
+
+        if (isLanguageDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isLanguageDropdownOpen]);
 
     // Initial load
     useEffect(() => {
@@ -516,7 +545,6 @@ function CreateItemForm({ token, initialData, selectedCategory, onNext, onBack }
             `}</style>
             
             <Navbar token={token} />
-
 
             {/* Progress Indicator */}
             <div style={{
@@ -1156,17 +1184,163 @@ function CreateItemForm({ token, initialData, selectedCategory, onNext, onBack }
                                 </div>
 
                                 {shouldShowField('languages', categoryName) && (
-                                    <div style={{ marginBottom: '1.5rem' }}>
-                                        <label style={labelStyle}>Languages <span style={{ color: '#dc3545' }}>*</span></label>
+                                    <div style={{ marginBottom: '1.5rem', position: 'relative' }} ref={languageDropdownRef}>
+                                        <label style={labelStyle}>
+                                            Language <span style={{ color: '#dc3545' }}>*</span>
+                                        </label>
+                                        
+                                        {/* Custom Searchable Select */}
+                                        <div style={{ position: 'relative' }}>
+                                            {/* Selected Value / Trigger */}
+                                            <div
+                                                onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+                                                style={{
+                                                    ...inputStyle,
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    backgroundColor: 'white'
+                                                }}
+                                            >
+                                                <span style={{ 
+                                                    color: formData.languages ? '#495057' : '#6c757d',
+                                                    flex: 1
+                                                }}>
+                                                    {formData.languages || 'Select a language'}
+                                                </span>
+                                                <span style={{ 
+                                                    fontSize: '0.8rem',
+                                                    color: '#6c757d',
+                                                    marginLeft: '0.5rem',
+                                                    transform: isLanguageDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                    transition: 'transform 0.2s'
+                                                }}>
+                                                    ▼
+                                                </span>
+                                            </div>
+
+                                            {/* Dropdown */}
+                                            {isLanguageDropdownOpen && (
+                                                <div
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '100%',
+                                                        left: 0,
+                                                        right: 0,
+                                                        marginTop: '0.25rem',
+                                                        backgroundColor: 'white',
+                                                        border: '2px solid #7c6fd6',
+                                                        borderRadius: '8px',
+                                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                                                        zIndex: 1000,
+                                                        maxHeight: '350px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column'
+                                                    }}
+                                                >
+                                                    {/* Search Input */}
+                                                    <div style={{ padding: '0.75rem', borderBottom: '1px solid #dee2e6' }}>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search languages..."
+                                                            value={languageSearch}
+                                                            onChange={(e) => setLanguageSearch(e.target.value)}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '0.5rem',
+                                                                border: '1px solid #dee2e6',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.9rem',
+                                                                outline: 'none'
+                                                            }}
+                                                            autoFocus
+                                                        />
+                                                    </div>
+
+                                                    {/* Language Options */}
+                                                    <div style={{
+                                                        overflowY: 'auto',
+                                                        maxHeight: '280px'
+                                                    }}>
+                                                        {filteredLanguages.length === 0 ? (
+                                                            <div style={{
+                                                                padding: '1rem',
+                                                                textAlign: 'center',
+                                                                color: '#6c757d',
+                                                                fontSize: '0.9rem'
+                                                            }}>
+                                                                No languages found
+                                                            </div>
+                                                        ) : (
+                                                            filteredLanguages.map(lang => (
+                                                                <div
+                                                                    key={lang.code}
+                                                                    onClick={() => {
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            languages: lang.name
+                                                                        }));
+                                                                        setIsLanguageDropdownOpen(false);
+                                                                        setLanguageSearch('');
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '0.75rem 1rem',
+                                                                        cursor: 'pointer',
+                                                                        backgroundColor: formData.languages === lang.name ? '#f0f0ff' : 'transparent',
+                                                                        borderLeft: formData.languages === lang.name ? '3px solid #7c6fd6' : '3px solid transparent',
+                                                                        transition: 'all 0.2s',
+                                                                        fontSize: '0.9rem',
+                                                                        color: '#495057'
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        if (formData.languages !== lang.name) {
+                                                                            e.currentTarget.style.backgroundColor = '#f8f9fa';
+                                                                        }
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        if (formData.languages !== lang.name) {
+                                                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {lang.name}
+                                                                    {formData.languages === lang.name && (
+                                                                        <span style={{
+                                                                            marginLeft: '0.5rem',
+                                                                            color: '#7c6fd6',
+                                                                            fontWeight: '600'
+                                                                        }}>
+                                                                            ✓
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Hidden input for form validation */}
                                         <input
                                             type="text"
                                             name="languages"
                                             value={formData.languages}
-                                            onChange={handleInputChange}
-                                            style={inputStyle}
-                                            placeholder="e.g., English, Spanish, French"
+                                            onChange={() => {}} // Controlled by the custom select
                                             required
+                                            style={{ display: 'none' }}
                                         />
+                                        
+                                        <small style={{
+                                            display: 'block',
+                                            marginTop: '0.5rem',
+                                            fontSize: '0.85rem',
+                                            color: '#6c757d'
+                                        }}>
+                                            Select the primary language for this {categoryName.toLowerCase()}
+                                        </small>
                                     </div>
                                 )}
 

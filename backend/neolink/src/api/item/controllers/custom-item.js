@@ -280,7 +280,7 @@ ${createdEntry.item_category?.name || 'N/A'}
 ${offered_by}
 
 Show your interest to the event on NEOLink at the following link to join the conversation:  
-${process.env.FRONT_END_URL}items/${createdEntry.documentId || 'N/A'}`,
+${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
                             category: 101, 
                         };
                     
@@ -302,7 +302,7 @@ ${description}
 ${createdEntry.item_category?.name || 'N/A'}
 
 All details about the event are available at the following link:  
-${process.env.FRONT_END_URL}items/${createdEntry.documentId || 'N/A'}`,
+${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
                             category: createdCategoryId,
                             auto_track: true,
                         }

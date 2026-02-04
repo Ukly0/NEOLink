@@ -264,6 +264,7 @@ module.exports = {
                 if (createdEntry){
                     console.log("Created Strapi entry:", createdEntry);
                     let topic_payload;
+
                     
                     if (createdCategoryId){
                         topic_payload = {
@@ -283,7 +284,6 @@ Show your interest to the event on NEOLink at the following link to join the con
 ${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
                             category: 101, 
                         };
-                    
                         await axios.post(`${process.env.DISCOURSE_URL}/posts.json`, topic_payload, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
@@ -291,18 +291,72 @@ ${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
                             }
                         });
 
-                        // Create a topic to log users when join the group
-                        topic_payload = {
-                            title: `Group Activity - ${name}`,
-                            raw: `${offered_by} have just created the event **${name}** in the NEOLink platform!
+                    const topicsResponse = await axios.get(`${process.env.DISCOURSE_URL}/c/${createdCategoryId}.json`, {
+                        headers: {
+                            'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                            'Api-Username': 'system'
+                        }
+                    });
+                    const topics = topicsResponse.data.topic_list.topics;
+                    let first_topic = topics.length > 0 ? topics[0] : null;
+
+                    if (first_topic){
+                        const postContent = `We are pleased to announce that **${name}** has been successfully created and is now available on the **NEOLink platform**!
+
 **Description**  
 ${description}
 
 **Event Type**  
 ${createdEntry.item_category?.name || 'N/A'}
 
-All details about the event are available at the following link:  
-${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
+**Offered by**  
+${offered_by}
+
+See all the details of the event on NEOLink at the following link:  
+${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}
+
+Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/welcome-write-here-first-${group_name_sanitized.replace('_', '-')}}`;
+
+                        // Update topic title
+                        await axios.put(`${process.env.DISCOURSE_URL}/t/-/${first_topic.id}.json`, {
+                            title: `Info about the event "${name}"`,
+                            category: createdCategoryId,
+                        }, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+
+                        // Update the first post content
+                        // Get the topic details to find the first post ID
+                        const topicDetails = await axios.get(`${process.env.DISCOURSE_URL}/t/${first_topic.id}.json`, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+                        
+                        const firstPostId = topicDetails.data.post_stream.posts[0].id;
+                        
+                        await axios.put(`${process.env.DISCOURSE_URL}/posts/${firstPostId}.json`, {
+                            post: {
+                                raw: postContent
+                            }
+                        }, {
+                            headers: {
+                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                'Api-Username': 'system'
+                            }
+                        });
+                    }
+
+                        // Create a topic to log users when join the group
+                        topic_payload = {
+                            title: `Welcome (write here first :slightly_smiling_face:) ${group_name_sanitized}!`,
+                            raw: `**${offered_by}** have just created the event **${name}** in the NEOLink platform!
+
+Feel free to write here to welcome new members who showed interest in the event and joined the group!`,
                             category: createdCategoryId,
                             auto_track: true,
                         }

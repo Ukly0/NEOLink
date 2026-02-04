@@ -851,29 +851,42 @@ Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/${we
             if (data.name && data.name !== entry.name){
                 const discourse_group_id = entry.discourse_group_id;
                 const discourse_category_id = entry.discourse_category_id;
-                
+                let group_name_sanitazed;
                 if (discourse_group_id){
                     try{
-                        const group_name_sanitazed = createGroupId(data.name);
-                            console.log("Sanitized group name for update:", group_name_sanitazed);
-                        await axios.put(`${process.env.DISCOURSE_URL}/groups/${discourse_group_id}.json`, {
-                            name: group_name_sanitazed,
-                            full_name: `[NEOLink] ${data.name}`,
-                        }, {
-                            headers: {
-                                'Api-Key': process.env.DISCOURSE_API_TOKEN,
-                                'Api-Username': 'system'
+                        group_name_sanitazed = createGroupId(data.name);
+                        console.log("Sanitized group name for update:", group_name_sanitazed);
+                        await axios.put(
+                            `${process.env.DISCOURSE_URL}/groups/${discourse_group_id}.json`, 
+                            {
+                                group: { 
+                                    name: group_name_sanitazed,
+                                    full_name: `[NEOLink] ${data.name}`,
+                                },
+                                update_existing_users : true
+                            }, 
+                            {
+                                headers: {
+                                    'Api-Key': process.env.DISCOURSE_API_TOKEN,
+                                    'Api-Username': 'system'
+                                }
                             }
-                        });
+                        );
                     } catch (error){
                         console.log("Error updating Discourse group name: " + error);
                     }
                 }
                 if (discourse_category_id){
                     try{
-                        const categories_name_sanitazed = data.name.slice(0, 50);
+                        const categories_name_sanitazed = data.name.toLowerCase()
+                            .trim()
+                            .replace(/\s+/g, '_')
+                            .replace(/[^a-z0-9_-]/g, '')
+                            .replace(/[-._]{2,}/g, '_')
+                            .slice(0, 40);
                         await axios.put(`${process.env.DISCOURSE_URL}/categories/${discourse_category_id}.json`, {
-                            name: `[NEOLink] ${categories_name_sanitazed}`,
+                            name: `[NEOLink] ${data.name.slice(0, 40)}`,
+                            slug: categories_name_sanitazed,
                         }, {
                             headers: {
                                 'Api-Key': process.env.DISCOURSE_API_TOKEN,
@@ -881,6 +894,7 @@ Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/${we
                             }
                         });
                     } catch (error){
+
                         console.log("Error updating Discourse category name: " + error);
                     }
                 }

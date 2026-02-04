@@ -3,6 +3,8 @@ const seller = require('../../seller/controllers/seller');
 const crypto = require('crypto');
 const { pop } = require('../../../../config/middlewares');
 const { createGroupId } = require('../../../utils/group_id');
+const { transformString } = require('../../../utils/trasform_string');
+const { group } = require('console');
 
 module.exports = {
     async create(ctx, next){
@@ -297,6 +299,9 @@ ${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}`,
                             'Api-Username': 'system'
                         }
                     });
+
+                    const concatenated_name = group_display_name + ' ' + new Date().toLocaleString();
+
                     const topics = topicsResponse.data.topic_list.topics;
                     let first_topic = topics.length > 0 ? topics[0] : null;
 
@@ -315,11 +320,11 @@ ${offered_by}
 See all the details of the event on NEOLink at the following link:  
 ${process.env.FRONTEND_URL}items/${createdEntry.documentId || 'N/A'}
 
-Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/welcome-write-here-first-${group_name_sanitized.replaceAll('_', '-')}`;
+Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/welcome-write-here-first-${transformString(concatenated_name)}`;
 
                         // Update topic title
                         await axios.put(`${process.env.DISCOURSE_URL}/t/-/${first_topic.id}.json`, {
-                            title: `Info about the event "${name}"`,
+                            title: `Info about the event "${concatenated_name}"`,
                             category: createdCategoryId,
                         }, {
                             headers: {
@@ -351,9 +356,9 @@ Join the conversation at the following link: ${process.env.DISCOURSE_URL}/t/welc
                         });
                     }
 
-                        // Create a topic to log users when join the group
+
                         topic_payload = {
-                            title: `Welcome (write here first :slightly_smiling_face:) ${group_name_sanitized}!`,
+                            title: `Welcome (write here first :slightly_smiling_face:) ${concatenated_name}!`,
                             raw: `**${offered_by}** have just created the event **${name}** in the NEOLink platform!
 
 Feel free to write here to welcome new members who showed interest in the event and joined the group!`,

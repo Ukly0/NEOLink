@@ -33,13 +33,18 @@ function ItemsList() {
     const [showFilters, setShowFilters] = useState(false);
     const token = localStorage.getItem("token");
     const prevSearchRef = useRef(filters.search);
+    const prevLanguagesRef = useRef(filters.languages);
 
     useEffect(() => {
-        if (prevSearchRef.current !== filters.search) {
+        const searchChanged = prevSearchRef.current !== filters.search;
+        const languagesChanged = prevLanguagesRef.current !== filters.languages;
+
+        if (languagesChanged || searchChanged) {
 
             const timer = setTimeout(() => {
                 fetchItems();
                 prevSearchRef.current = filters.search;
+                prevLanguagesRef.current = filters.languages;
             }, 350)
 
             return () => clearTimeout(timer);

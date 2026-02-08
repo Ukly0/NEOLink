@@ -52,11 +52,11 @@ function ItemsList() {
     const fetchItems = async () => {
         setLoading(true);
         setError(null);
-
+        
         try {
             // Build query string from filters
             const queryParams = new URLSearchParams();
-
+            
             // Multi-field search using $or operator
             if (filters.search) {
                 const searchTerm = filters.search;
@@ -69,7 +69,7 @@ function ItemsList() {
                 queryParams.append('filters[$or][6][seller_name][$containsi]', searchTerm);
                 queryParams.append('filters[$or][7][multimedial_material_provided][$containsi]', searchTerm);
             }
-
+            
             if (filters.category_id) {
                 console.log("Applying category_id filter:", filters.category_id);
                 queryParams.append('filters[item_category][documentId][$eq]', filters.category_id);
@@ -80,17 +80,17 @@ function ItemsList() {
             if (filters.item_status) {
                 queryParams.append('filters[item_status][$eq]', filters.item_status);
             }
-
+            
             // ERC Area filter
             if (filters.erc_area) {
                 queryParams.append('filters[erc_area][$eq]', filters.erc_area);
             }
-
+            
             // ERC Panel filter
             if (filters.erc_panel && filters.erc_area) {
                 queryParams.append('filters[erc_panel][documentId][$eq]', filters.erc_panel);
             }
-
+            
             // ERC Keyword filter
             if (filters.erc_keyword && filters.erc_panel && filters.erc_area) {
                 queryParams.append('filters[erc_keyword][documentId][$eq]', filters.erc_keyword);
@@ -126,7 +126,7 @@ function ItemsList() {
             const response = await axios.get(
                 `${base_url}/items?${queryParams.toString()}`
             );
-
+            
             setItems(response.data.data || []);
             setLoading(false);
         } catch (err) {
@@ -160,15 +160,15 @@ function ItemsList() {
     };
 
     const hasActiveFilters = () => {
-        return filters.search || filters.category_id || filters.university ||
-            filters.item_status || filters.erc_area || filters.erc_panel ||
-            filters.erc_keyword || filters.languages || filters.start_date_from ||
-            filters.start_date_to || filters.end_date_from || filters.end_date_to ||
-            filters.expiration_from || filters.expiration_to;
+        return filters.search || filters.category_id || filters.university || 
+               filters.item_status || filters.erc_area || filters.erc_panel || 
+               filters.erc_keyword || filters.languages || filters.start_date_from || 
+               filters.start_date_to || filters.end_date_from || filters.end_date_to ||
+               filters.expiration_from || filters.expiration_to;
     };
 
     return (
-        <div style={{
+        <div style={{ 
             minHeight: '100vh',
             backgroundColor: '#fafafa',
             display: 'flex',
@@ -177,7 +177,7 @@ function ItemsList() {
             <Navbar token={token} />
 
             {/* Main Content */}
-            <div style={{
+            <div style={{ 
                 flex: 1,
                 maxWidth: '1400px',
                 width: '100%',
@@ -194,7 +194,7 @@ function ItemsList() {
                     gap: '1rem'
                 }}>
                     <div>
-                        <h2 style={{
+                        <h2 style={{ 
                             fontSize: '2rem',
                             fontWeight: '700',
                             color: '#213547',
@@ -205,7 +205,7 @@ function ItemsList() {
                         <p style={{ color: '#6c757d', margin: 0 }}>
                             {items.length} {items.length === 1 ? 'item' : 'items'} found
                             {hasActiveFilters() && (
-                                <span style={{
+                                <span style={{ 
                                     marginLeft: '0.5rem',
                                     color: '#7c6fd6',
                                     fontWeight: '500'
@@ -215,13 +215,13 @@ function ItemsList() {
                             )}
                         </p>
                     </div>
-
+                    
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         style={{
                             padding: '0.75rem 1.5rem',
-                            background: showFilters
-                                ? 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'
+                            background: showFilters 
+                                ? 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)' 
                                 : 'linear-gradient(135deg, #7c6fd6 0%, #8b7ad6 100%)',
                             color: 'white',
                             border: 'none',
@@ -230,8 +230,8 @@ function ItemsList() {
                             fontWeight: '600',
                             cursor: 'pointer',
                             transition: 'all 0.3s',
-                            boxShadow: showFilters
-                                ? '0 2px 4px rgba(220, 53, 69, 0.2)'
+                            boxShadow: showFilters 
+                                ? '0 2px 4px rgba(220, 53, 69, 0.2)' 
                                 : '0 2px 4px rgba(124, 111, 214, 0.2)',
                             display: 'flex',
                             alignItems: 'center',
@@ -239,14 +239,14 @@ function ItemsList() {
                         }}
                         onMouseEnter={(e) => {
                             e.target.style.transform = 'translateY(-2px)';
-                            e.target.style.boxShadow = showFilters
-                                ? '0 4px 12px rgba(220, 53, 69, 0.4)'
+                            e.target.style.boxShadow = showFilters 
+                                ? '0 4px 12px rgba(220, 53, 69, 0.4)' 
                                 : '0 4px 12px rgba(124, 111, 214, 0.4)';
                         }}
                         onMouseLeave={(e) => {
                             e.target.style.transform = 'translateY(0)';
-                            e.target.style.boxShadow = showFilters
-                                ? '0 2px 4px rgba(220, 53, 69, 0.2)'
+                            e.target.style.boxShadow = showFilters 
+                                ? '0 2px 4px rgba(220, 53, 69, 0.2)' 
                                 : '0 2px 4px rgba(124, 111, 214, 0.2)';
                         }}
                     >
@@ -272,7 +272,7 @@ function ItemsList() {
                         marginBottom: '2rem',
                         animation: 'slideDown 0.3s ease-out'
                     }}>
-                        <ItemsFilter
+                        <ItemsFilter 
                             filters={filters}
                             onFilterChange={handleFilterChange}
                             onClearFilters={clearFilters}
@@ -296,7 +296,7 @@ function ItemsList() {
                     )}
 
                     {loading ? (
-                        <div style={{
+                        <div style={{ 
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',

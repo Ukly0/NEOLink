@@ -16,7 +16,7 @@ function PersonalPage() {
     const [showSupportModal, setShowSupportModal] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-
+    
     const token = location.state?.token || localStorage.getItem("token");
 
     const formatName = (name) => {
@@ -31,8 +31,8 @@ function PersonalPage() {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
             day: 'numeric',
             year: 'numeric'
         });
@@ -78,7 +78,7 @@ function PersonalPage() {
         }
     }, [token]);
 
-    useEffect(() => {
+    useEffect(() => {        
         const checkToken = async () => {
             if (!token_is_valid()) {
                 localStorage.removeItem("token");
@@ -96,17 +96,17 @@ function PersonalPage() {
 
     const SupportModal = () => {
         if (!showSupportModal) return null;
-
+        
         return (
-            <div
+            <div 
                 style={styles.modalOverlay}
                 onClick={() => setShowSupportModal(false)}
             >
-                <div
+                <div 
                     style={styles.modalContent}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <button
+                    <button 
                         style={styles.modalClose}
                         onClick={() => setShowSupportModal(false)}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
@@ -114,16 +114,16 @@ function PersonalPage() {
                     >
                         ✕
                     </button>
-
+                    
                     <div style={styles.modalIcon}>💬</div>
                     <h2 style={styles.modalTitle}>Need Help?</h2>
                     <p style={styles.modalText}>
                         Our support team is here to assist you. Reach out to us via email and we'll get back to you as soon as possible.
                     </p>
-
+                    
                     <div style={styles.emailContainer}>
                         <span style={styles.emailLabel}>Contact us at:</span>
-                        <a
+                        <a 
                             href="mailto:virtualcafe-support-list@unisa.it"
                             style={styles.emailLink}
                             onMouseEnter={(e) => {
@@ -168,7 +168,7 @@ function PersonalPage() {
     return (
         <div style={styles.pageWrapper}>
             <Navbar token={token} onLogout={handleLogout} />
-
+            
             {/* Support Modal */}
             <SupportModal />
 
@@ -244,7 +244,7 @@ function PersonalPage() {
                                         <span style={styles.detailIcon}>#</span>
                                         <div style={styles.detailContent}>
                                             <span style={styles.detailLabel}>User ID</span>
-                                            <span style={{ ...styles.detailValue, fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                                            <span style={{...styles.detailValue, fontFamily: 'monospace', fontSize: '0.85rem'}}>
                                                 {userData.sub}
                                             </span>
                                         </div>
@@ -257,7 +257,7 @@ function PersonalPage() {
                         <div style={styles.actionsCard}>
                             <h3 style={styles.actionsTitle}>Quick Actions</h3>
                             <div style={styles.actionsGrid}>
-                                <button
+                                <button 
                                     onClick={() => navigate('/create-item', { state: { token } })}
                                     style={styles.actionButton}
                                     onMouseEnter={(e) => {
@@ -273,7 +273,7 @@ function PersonalPage() {
                                     <span style={styles.actionLabel}>Create Item</span>
                                 </button>
 
-                                <button
+                                <button 
                                     onClick={() => navigate('/items')}
                                     style={styles.actionButton}
                                     onMouseEnter={(e) => {
@@ -289,9 +289,9 @@ function PersonalPage() {
                                     <span style={styles.actionLabel}>Browse All</span>
                                 </button>
 
-                                <button
+                                <button 
                                     onClick={() => setShowSupportModal(true)}
-                                    style={{ ...styles.actionButton, ...styles.supportButton }}
+                                    style={{...styles.actionButton, ...styles.supportButton}}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = 'translateY(-3px)';
                                         e.currentTarget.style.boxShadow = '0 8px 24px rgba(230, 126, 34, 0.3)';
@@ -313,7 +313,7 @@ function PersonalPage() {
                         <div style={styles.recentItemsCard}>
                             <div style={styles.recentHeader}>
                                 <h3 style={styles.recentTitle}>Recent Items</h3>
-                                <button
+                                <button 
                                     onClick={() => navigate('/items')}
                                     style={styles.viewAllButton}
                                     onMouseEnter={(e) => e.currentTarget.style.color = '#6b5fc7'}
@@ -338,8 +338,8 @@ function PersonalPage() {
                             ) : recentItems.length > 0 ? (
                                 <div style={styles.itemsList}>
                                     {recentItems.map((item, index) => (
-                                        <div
-                                            key={item.id || index}
+                                        <div 
+                                            key={item.id || index} 
                                             style={styles.itemCard}
                                             onClick={() => navigate(`/items/${item.documentId}`, { state: { token } })}
                                             onMouseEnter={(e) => {
@@ -353,7 +353,7 @@ function PersonalPage() {
                                         >
                                             <div style={styles.itemIconWrapper}>
                                                 <span style={styles.itemIcon}>
-                                                    <img src={getCategoryIcon(item?.item_category?.name || item || '')} alt="Category Icon" style={{ width: '40px', height: '30px' }} />
+                                                    <img src={getCategoryIcon(item?.item_category?.name || item || '')} alt="Category Icon" style={{ width: '40px', height: '30px' }}/>
                                                 </span>
                                             </div>
                                             <div style={styles.itemInfo}>
@@ -374,8 +374,8 @@ function PersonalPage() {
                                                 </div>
                                                 {item.description && (
                                                     <p style={styles.itemDescription}>
-                                                        {item.description.length > 80
-                                                            ? item.description.substring(0, 80) + '...'
+                                                        {item.description.length > 80 
+                                                            ? item.description.substring(0, 80) + '...' 
                                                             : item.description}
                                                     </p>
                                                 )}
@@ -388,7 +388,7 @@ function PersonalPage() {
                                 <div style={styles.emptyState}>
                                     <div style={styles.emptyIcon}>📭</div>
                                     <p style={styles.emptyText}>No items posted yet</p>
-                                    <button
+                                    <button 
                                         onClick={() => navigate('/create-item', { state: { token } })}
                                         style={styles.emptyButton}
                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6b5fc7'}
